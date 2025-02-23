@@ -64,6 +64,7 @@ mkdir -p ocs2_ws/src
 ```bash
 cd ~/ocs2_ws/src
 git clone https://github.com/legubiao/ocs2_ros2
+cd ocs2_ros2
 git submodule update --init --recursive
 ```
 

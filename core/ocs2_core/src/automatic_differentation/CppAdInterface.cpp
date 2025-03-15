@@ -32,7 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/filesystem.hpp>
 #include <memory>
 
-namespace ocs2 {
+namespace ocs2
+{
     CppAdInterface::CppAdInterface(ad_parameterized_function_t adFunction, const size_t variableDim,
                                    const size_t parameterDim,
                                    std::string modelName,
@@ -42,7 +43,8 @@ namespace ocs2 {
           variableDim_(variableDim),
           parameterDim_(parameterDim),
           modelName_(std::move(modelName)),
-          folderName_(std::move(folderName)) {
+          folderName_(std::move(folderName))
+    {
         setFolderNames();
     }
 
@@ -50,22 +52,26 @@ namespace ocs2 {
     CppAdInterface::CppAdInterface(ad_function_t adFunction, const size_t variableDim, std::string modelName,
                                    std::string folderName,
                                    std::vector<std::string> compileFlags)
-        : CppAdInterface([adFunction](const ad_vector_t &x, const ad_vector_t &p, ad_vector_t &y) { adFunction(x, y); },
+        : CppAdInterface([adFunction](const ad_vector_t& x, const ad_vector_t& p, ad_vector_t& y) { adFunction(x, y); },
                          variableDim, 0,
-                         std::move(modelName), std::move(folderName), std::move(compileFlags)) {
+                         std::move(modelName), std::move(folderName), std::move(compileFlags))
+    {
     }
 
 
-    CppAdInterface::CppAdInterface(const CppAdInterface &rhs)
+    CppAdInterface::CppAdInterface(const CppAdInterface& rhs)
         : CppAdInterface(rhs.adFunction_, rhs.variableDim_, rhs.parameterDim_, rhs.modelName_, rhs.folderName_,
-                         rhs.compileFlags_) {
-        if (isLibraryAvailable()) {
+                         rhs.compileFlags_)
+    {
+        if (isLibraryAvailable())
+        {
             loadModels(false);
         }
     }
 
 
-    void CppAdInterface::createModels(ApproximationOrder approximationOrder, bool verbose) {
+    void CppAdInterface::createModels(ApproximationOrder approximationOrder, bool verbose)
+    {
         createFolderStructure();
 
         // set and declare independent variables and start tape recording
@@ -96,9 +102,10 @@ namespace ocs2 {
         CppAD::cg::DynamicModelLibraryProcessor libraryProcessor(libraryCSourceGen, libraryName_ + tmpName_);
         setCompilerOptions(gccCompiler);
 
-        if (verbose) {
+        if (verbose)
+        {
             std::cerr << "[CppAdInterface] Compiling Shared Library: "
-                    << libraryName_ + tmpName_ + CppAD::cg::system::SystemInfo<>::DYNAMIC_LIB_EXTENSION << std::endl;
+                << libraryName_ + tmpName_ + CppAD::cg::system::SystemInfo<>::DYNAMIC_LIB_EXTENSION << std::endl;
         }
 
         // Compile and store the library
@@ -108,23 +115,26 @@ namespace ocs2 {
         setSparsityNonzeros();
 
         // Rename generated library after loading
-        if (verbose) {
+        if (verbose)
+        {
             std::cerr << "[CppAdInterface] Renaming " << libraryName_ + tmpName_ + CppAD::cg::system::SystemInfo
-                    <>::DYNAMIC_LIB_EXTENSION << " to "
-                    << libraryName_ + CppAD::cg::system::SystemInfo<>::DYNAMIC_LIB_EXTENSION << std::endl;
+                <>::DYNAMIC_LIB_EXTENSION << " to "
+                << libraryName_ + CppAD::cg::system::SystemInfo<>::DYNAMIC_LIB_EXTENSION << std::endl;
         }
         boost::filesystem::rename(libraryName_ + tmpName_ + CppAD::cg::system::SystemInfo<>::DYNAMIC_LIB_EXTENSION,
                                   libraryName_ + CppAD::cg::system::SystemInfo<>::DYNAMIC_LIB_EXTENSION);
     }
 
 
-    void CppAdInterface::loadModels(bool verbose) {
-        if (verbose) {
+    void CppAdInterface::loadModels(bool verbose)
+    {
+        if (verbose)
+        {
             std::cerr << "[CppAdInterface] Loading Shared Library: " << libraryName_ + CppAD::cg::system::SystemInfo
-                    <>::DYNAMIC_LIB_EXTENSION
-                    << std::endl;
+                <>::DYNAMIC_LIB_EXTENSION
+                << std::endl;
         }
-        dynamicLib_ = std::make_unique<CppAD::cg::LinuxDynamicLib<scalar_t> >(
+        dynamicLib_ = std::make_unique<CppAD::cg::LinuxDynamicLib<scalar_t>>(
             libraryName_ + CppAD::cg::system::SystemInfo<>::DYNAMIC_LIB_EXTENSION);
         model_ = dynamicLib_->model(modelName_);
         rangeDim_ = model_->Range();
@@ -133,16 +143,21 @@ namespace ocs2 {
     }
 
 
-    void CppAdInterface::loadModelsIfAvailable(ApproximationOrder approximationOrder, bool verbose) {
-        if (isLibraryAvailable()) {
+    void CppAdInterface::loadModelsIfAvailable(ApproximationOrder approximationOrder, bool verbose)
+    {
+        if (isLibraryAvailable())
+        {
             loadModels(verbose);
-        } else {
+        }
+        else
+        {
             createModels(approximationOrder, verbose);
         }
     }
 
 
-    vector_t CppAdInterface::getFunctionValue(const vector_t &x, const vector_t &p) const {
+    vector_t CppAdInterface::getFunctionValue(const vector_t& x, const vector_t& p) const
+    {
         vector_t xp(variableDim_ + parameterDim_);
         xp << x, p;
 
@@ -154,7 +169,8 @@ namespace ocs2 {
     }
 
 
-    matrix_t CppAdInterface::getJacobian(const vector_t &x, const vector_t &p) const {
+    matrix_t CppAdInterface::getJacobian(const vector_t& x, const vector_t& p) const
+    {
         // Concatenate input
         vector_t xp(variableDim_ + parameterDim_);
         xp << x, p;
@@ -162,15 +178,16 @@ namespace ocs2 {
 
         std::vector<scalar_t> sparseJacobian(nnzJacobian_);
         const CppAD::cg::ArrayView sparseJacobianArrayView(sparseJacobian);
-        size_t const *rows;
-        size_t const *cols;
+        size_t const* rows;
+        size_t const* cols;
         // Call this particular SparseJacobian. Other CppAd functions allocate internal vectors that are incompatible with multithreading.
         model_->SparseJacobian(xpArrayView, sparseJacobianArrayView, &rows, &cols);
 
         // Write sparse elements into Eigen type. Only jacobian w.r.t. variables was requested, so cols should not contain elements corresponding
         // to parameters.
         matrix_t jacobian = matrix_t::Zero(static_cast<long>(model_->Range()), static_cast<long>(variableDim_));
-        for (size_t i = 0; i < nnzJacobian_; i++) {
+        for (size_t i = 0; i < nnzJacobian_; i++)
+        {
             jacobian(static_cast<long>(rows[i]), static_cast<long>(cols[i])) = sparseJacobian[i];
         }
 
@@ -180,7 +197,8 @@ namespace ocs2 {
 
 
     ScalarFunctionQuadraticApproximation CppAdInterface::getGaussNewtonApproximation(
-        const vector_t &x, const vector_t &p) const {
+        const vector_t& x, const vector_t& p) const
+    {
         // Concatenate input
         vector_t xp(variableDim_ + parameterDim_);
         xp << x, p;
@@ -196,13 +214,14 @@ namespace ocs2 {
         // Jacobian
         std::vector<scalar_t> sparseJacobian(nnzJacobian_);
         CppAD::cg::ArrayView sparseJacobianArrayView(sparseJacobian);
-        size_t const *rows;
-        size_t const *cols;
+        size_t const* rows;
+        size_t const* cols;
         model_->SparseJacobian(xpArrayView, sparseJacobianArrayView, &rows, &cols);
 
         // Sparse evaluation of J' * f
         gnApprox.dfdx.setZero(static_cast<long>(variableDim_));
-        for (size_t i = 0; i < nnzJacobian_; i++) {
+        for (size_t i = 0; i < nnzJacobian_; i++)
+        {
             gnApprox.dfdx(static_cast<long>(cols[i])) += sparseJacobian[i] * valueVector(static_cast<long>(rows[i]));
         }
 
@@ -213,7 +232,8 @@ namespace ocs2 {
          * For each row of J, we add the non-zero pairs (i, j) to H(i, j).
          */
         gnApprox.dfdxx.setZero(static_cast<long>(variableDim_), static_cast<long>(variableDim_));
-        for (size_t i = 0; i < nnzJacobian_; ++i) {
+        for (size_t i = 0; i < nnzJacobian_; ++i)
+        {
             const size_t row_i = rows[i];
             const size_t col_i = cols[i];
             const scalar_t v_i = sparseJacobian[i];
@@ -221,10 +241,12 @@ namespace ocs2 {
             gnApprox.dfdxx(static_cast<long>(col_i), static_cast<long>(col_i)) += v_i * v_i;
             // Process off-diagonals
             size_t j = i + 1;
-            while (rows[j] == row_i) {
+            while (rows[j] == row_i)
+            {
                 const size_t col_j = cols[j];
                 gnApprox.dfdxx(static_cast<long>(col_j), static_cast<long>(col_i)) += v_i * sparseJacobian[j];
-                gnApprox.dfdxx(static_cast<long>(col_i), static_cast<long>(col_j)) = gnApprox.dfdxx(static_cast<long>(col_j), static_cast<long>(col_i)); // Maintain symmetry as we go.
+                gnApprox.dfdxx(static_cast<long>(col_i), static_cast<long>(col_j)) = gnApprox.dfdxx(
+                    static_cast<long>(col_j), static_cast<long>(col_i)); // Maintain symmetry as we go.
                 ++j;
             }
         }
@@ -235,7 +257,8 @@ namespace ocs2 {
     }
 
 
-    matrix_t CppAdInterface::getHessian(const size_t outputIndex, const vector_t &x, const vector_t &p) const {
+    matrix_t CppAdInterface::getHessian(const size_t outputIndex, const vector_t& x, const vector_t& p) const
+    {
         vector_t w = vector_t::Zero(static_cast<long>(rangeDim_));
         w[static_cast<long>(outputIndex)] = 1.0;
 
@@ -243,7 +266,8 @@ namespace ocs2 {
     }
 
 
-    matrix_t CppAdInterface::getHessian(const vector_t &w, const vector_t &x, const vector_t &p) const {
+    matrix_t CppAdInterface::getHessian(const vector_t& w, const vector_t& x, const vector_t& p) const
+    {
         // Concatenate input
         vector_t xp(variableDim_ + parameterDim_);
         xp << x, p;
@@ -251,8 +275,8 @@ namespace ocs2 {
 
         std::vector<scalar_t> sparseHessian(nnzHessian_);
         CppAD::cg::ArrayView sparseHessianArrayView(sparseHessian);
-        size_t const *rows;
-        size_t const *cols;
+        size_t const* rows;
+        size_t const* cols;
 
         CppAD::cg::ArrayView wArrayView(w.data(), w.size());
 
@@ -261,7 +285,8 @@ namespace ocs2 {
 
         // Fills upper triangular sparsity of hessian w.r.t variables.
         matrix_t hessian = matrix_t::Zero(static_cast<long>(variableDim_), static_cast<long>(variableDim_));
-        for (size_t i = 0; i < nnzHessian_; i++) {
+        for (size_t i = 0; i < nnzHessian_; i++)
+        {
             hessian(static_cast<long>(rows[i]), static_cast<long>(cols[i])) = sparseHessian[i];
         }
 
@@ -274,10 +299,14 @@ namespace ocs2 {
     }
 
 
-    void CppAdInterface::setFolderNames() {
-        if (!folderName_.empty()) {
+    void CppAdInterface::setFolderNames()
+    {
+        if (!folderName_.empty())
+        {
             libraryFolder_ = folderName_ + "/" + modelName_ + "/cppad_generated";
-        } else {
+        }
+        else
+        {
             libraryFolder_ = modelName_ + "/cppad_generated";
         }
         tmpName_ = getUniqueTemporaryName();
@@ -286,27 +315,32 @@ namespace ocs2 {
     }
 
 
-    bool CppAdInterface::isLibraryAvailable() const {
+    bool CppAdInterface::isLibraryAvailable() const
+    {
         return boost::filesystem::exists(libraryName_ + CppAD::cg::system::SystemInfo<>::DYNAMIC_LIB_EXTENSION);
     }
 
 
-    void CppAdInterface::createFolderStructure() const {
+    void CppAdInterface::createFolderStructure() const
+    {
         boost::filesystem::create_directories(libraryFolder_);
         boost::filesystem::create_directories(tmpFolder_);
     }
 
 
-    std::string CppAdInterface::getUniqueTemporaryName() {
+    std::string CppAdInterface::getUniqueTemporaryName()
+    {
         // Random string should be unique for each process and time of calling.
         const int randomFromClock = static_cast<int>(std::chrono::high_resolution_clock::now().time_since_epoch().
-                                        count()) % 1000;
+            count()) % 1000;
         return std::string("cppadcg_tmp") + std::to_string(randomFromClock) + std::to_string(getpid());
     }
 
 
-    void CppAdInterface::setCompilerOptions(CppAD::cg::GccCompiler<scalar_t> &compiler) const {
-        if (!compileFlags_.empty()) {
+    void CppAdInterface::setCompilerOptions(CppAD::cg::GccCompiler<scalar_t>& compiler) const
+    {
+        if (!compileFlags_.empty())
+        {
             // Set compile flags and add required flags for dynamic compilation
             auto compileFlags = compileFlags_;
             compiler.setCompileLibFlags(compileFlags_);
@@ -323,36 +357,42 @@ namespace ocs2 {
 
 
     void CppAdInterface::setApproximationOrder(ApproximationOrder approximationOrder,
-                                               CppAD::cg::ModelCSourceGen<scalar_t> &sourceGen,
-                                               ad_fun_t &fun) const {
-        switch (approximationOrder) {
-            case ApproximationOrder::Second:
-                sourceGen.setCreateSparseHessian(true);
-                sourceGen.setCustomSparseHessianElements(createHessianSparsity(fun));
-            // Intentional fall through
-            case ApproximationOrder::First:
-                sourceGen.setCreateSparseJacobian(true);
-                sourceGen.setCustomSparseJacobianElements(createJacobianSparsity(fun));
-            // Intentional fall through
-            case ApproximationOrder::Zero:
-                break;
-            default:
-                throw std::runtime_error("CppAdInterface: Invalid approximation order");
+                                               CppAD::cg::ModelCSourceGen<scalar_t>& sourceGen,
+                                               ad_fun_t& fun) const
+    {
+        switch (approximationOrder)
+        {
+        case ApproximationOrder::Second:
+            sourceGen.setCreateSparseHessian(true);
+            sourceGen.setCustomSparseHessianElements(createHessianSparsity(fun));
+        // Intentional fall through
+        case ApproximationOrder::First:
+            sourceGen.setCreateSparseJacobian(true);
+            sourceGen.setCustomSparseJacobianElements(createJacobianSparsity(fun));
+        // Intentional fall through
+        case ApproximationOrder::Zero:
+            break;
+        default:
+            throw std::runtime_error("CppAdInterface: Invalid approximation order");
         }
     }
 
 
-    void CppAdInterface::setSparsityNonzeros() {
-        if (model_->isJacobianSparsityAvailable()) {
+    void CppAdInterface::setSparsityNonzeros()
+    {
+        if (model_->isJacobianSparsityAvailable())
+        {
             nnzJacobian_ = cppad_sparsity::getNumberOfNonZeros(model_->JacobianSparsitySet());
         }
-        if (model_->isHessianSparsityAvailable()) {
+        if (model_->isHessianSparsityAvailable())
+        {
             nnzHessian_ = cppad_sparsity::getNumberOfNonZeros(model_->HessianSparsitySet());
         }
     }
 
 
-    cppad_sparsity::SparsityPattern CppAdInterface::createJacobianSparsity(ad_fun_t &fun) const {
+    cppad_sparsity::SparsityPattern CppAdInterface::createJacobianSparsity(ad_fun_t& fun) const
+    {
         const auto trueSparsity = cppad_sparsity::getJacobianSparsityPattern(fun);
         const auto variableSparsity = cppad_sparsity::getJacobianVariableSparsity(
             static_cast<int>(rangeDim_), static_cast<int>(variableDim_));
@@ -360,7 +400,8 @@ namespace ocs2 {
     }
 
 
-    cppad_sparsity::SparsityPattern CppAdInterface::createHessianSparsity(ad_fun_t &fun) const {
+    cppad_sparsity::SparsityPattern CppAdInterface::createHessianSparsity(ad_fun_t& fun) const
+    {
         const auto trueSparsity = cppad_sparsity::getHessianSparsityPattern(fun);
         const auto variableSparsity = cppad_sparsity::getHessianVariableSparsity(
             static_cast<int>(variableDim_), static_cast<int>(parameterDim_));

@@ -26,6 +26,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
+#pragma once
 
 #include <pinocchio/codegen/cppadcg.hpp>
 #include <pinocchio/fwd.hpp>
@@ -33,63 +34,55 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pinocchio/multibody/data.hpp>
 #include <pinocchio/multibody/model.hpp>
 
-namespace ocs2 {
+namespace ocs2
+{
+    template <typename SCALAR>
+    PinocchioInterfaceTpl<SCALAR>::PinocchioInterfaceTpl(const Model& model,
+                                                         const std::shared_ptr<const ::urdf::ModelInterface>
+                                                         urdfModelPtr)
+    {
+        robotModelPtr_ = std::make_shared<const Model>(model);
+        robotDataPtr_ = std::make_unique<Data>(*robotModelPtr_);
+        if (urdfModelPtr)
+        {
+            // This makes a copy of the urdfModelPtr, which guarantees constness of the urdf
+            urdfModelPtr_ = std::make_shared<const ::urdf::ModelInterface>(*urdfModelPtr);
+        }
+    }
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-template <typename SCALAR>
-PinocchioInterfaceTpl<SCALAR>::PinocchioInterfaceTpl(const Model& model, const std::shared_ptr<const ::urdf::ModelInterface> urdfModelPtr) {
-  robotModelPtr_ = std::make_shared<const Model>(model);
-  robotDataPtr_ = std::make_unique<Data>(*robotModelPtr_);
-  if (urdfModelPtr) {
-    // This makes a copy of the urdfModelPtr, which guarantees constness of the urdf
-    urdfModelPtr_ = std::make_shared<const ::urdf::ModelInterface>(*urdfModelPtr);
-  }
-}
+    template <typename SCALAR>
+    PinocchioInterfaceTpl<SCALAR>::~PinocchioInterfaceTpl() = default;
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-template <typename SCALAR>
-PinocchioInterfaceTpl<SCALAR>::~PinocchioInterfaceTpl() = default;
+    template <typename SCALAR>
+    PinocchioInterfaceTpl<SCALAR>::PinocchioInterfaceTpl(const PinocchioInterfaceTpl& rhs)
+        : robotModelPtr_(rhs.robotModelPtr_), robotDataPtr_(new Data(*rhs.robotDataPtr_)),
+          urdfModelPtr_(rhs.urdfModelPtr_)
+    {
+    }
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-template <typename SCALAR>
-PinocchioInterfaceTpl<SCALAR>::PinocchioInterfaceTpl(const PinocchioInterfaceTpl<SCALAR>& rhs)
-    : robotModelPtr_(rhs.robotModelPtr_), robotDataPtr_(new Data(*rhs.robotDataPtr_)), urdfModelPtr_(rhs.urdfModelPtr_) {}
+    template <typename SCALAR>
+    PinocchioInterfaceTpl<SCALAR>::PinocchioInterfaceTpl(PinocchioInterfaceTpl&& rhs)
+        : robotModelPtr_(std::move(rhs.robotModelPtr_)),
+          robotDataPtr_(std::move(rhs.robotDataPtr_)),
+          urdfModelPtr_(std::move(rhs.urdfModelPtr_))
+    {
+    }
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-template <typename SCALAR>
-PinocchioInterfaceTpl<SCALAR>::PinocchioInterfaceTpl(PinocchioInterfaceTpl<SCALAR>&& rhs)
-    : robotModelPtr_(std::move(rhs.robotModelPtr_)),
-      robotDataPtr_(std::move(rhs.robotDataPtr_)),
-      urdfModelPtr_(std::move(rhs.urdfModelPtr_)) {}
+    template <typename SCALAR>
+    PinocchioInterfaceTpl<SCALAR>& PinocchioInterfaceTpl<SCALAR>::operator=(const PinocchioInterfaceTpl& rhs)
+    {
+        robotModelPtr_ = rhs.robotModelPtr_;
+        robotDataPtr_.reset(new Data(*rhs.robotDataPtr_));
+        urdfModelPtr_ = rhs.urdfModelPtr_;
+        return *this;
+    }
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-template <typename SCALAR>
-PinocchioInterfaceTpl<SCALAR>& PinocchioInterfaceTpl<SCALAR>::operator=(const PinocchioInterfaceTpl<SCALAR>& rhs) {
-  robotModelPtr_ = rhs.robotModelPtr_;
-  robotDataPtr_.reset(new Data(*rhs.robotDataPtr_));
-  urdfModelPtr_ = rhs.urdfModelPtr_;
-  return *this;
-}
-
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-template <typename SCALAR>
-PinocchioInterfaceTpl<SCALAR>& PinocchioInterfaceTpl<SCALAR>::operator=(PinocchioInterfaceTpl<SCALAR>&& rhs) {
-  std::swap(robotModelPtr_, rhs.robotModelPtr_);
-  std::swap(robotDataPtr_, rhs.robotDataPtr_);
-  std::swap(urdfModelPtr_, rhs.urdfModelPtr_);
-  return *this;
-}
-
-}  // namespace ocs2
+    template <typename SCALAR>
+    PinocchioInterfaceTpl<SCALAR>& PinocchioInterfaceTpl<SCALAR>::operator=(PinocchioInterfaceTpl&& rhs)
+    {
+        std::swap(robotModelPtr_, rhs.robotModelPtr_);
+        std::swap(robotDataPtr_, rhs.robotDataPtr_);
+        std::swap(urdfModelPtr_, rhs.urdfModelPtr_);
+        return *this;
+    }
+} // namespace ocs2

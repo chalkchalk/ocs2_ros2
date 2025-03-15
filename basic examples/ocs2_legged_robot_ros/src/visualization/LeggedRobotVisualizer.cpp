@@ -167,8 +167,7 @@ namespace ocs2::legged_robot
                               centroidal_model::getGeneralizedCoordinates(
                                   observation.state, centroidalModelInfo_));
             updateFramePlacements(model, data);
-
-            const auto timeStamp = clock_->now();
+            publishObservation(clock_->now(), observation);
             lastTime_ = observation.time;
         }
     }

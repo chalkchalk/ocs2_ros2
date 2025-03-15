@@ -26,18 +26,21 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
+#ifndef MODESEQUENCETEMPLATEROS_H
+#define MODESEQUENCETEMPLATEROS_H
 
-#pragma once
 
 #include <ocs2_legged_robot/gait/ModeSequenceTemplate.h>
 
 #include <ocs2_msgs/msg/mode_schedule.hpp>
 #include <vector>
 
-namespace ocs2::legged_robot {
+namespace ocs2::legged_robot
+{
     /** Convert mode sequence template to ROS message */
     inline ocs2_msgs::msg::ModeSchedule createModeSequenceTemplateMsg(
-        const ModeSequenceTemplate &ModeSequenceTemplate) {
+        const ModeSequenceTemplate& ModeSequenceTemplate)
+    {
         ocs2_msgs::msg::ModeSchedule modeScheduleMsg;
         modeScheduleMsg.event_times.assign(
             ModeSequenceTemplate.switchingTimes.begin(),
@@ -50,11 +53,13 @@ namespace ocs2::legged_robot {
 
     /** Convert ROS message to mode sequence template */
     inline ModeSequenceTemplate readModeSequenceTemplateMsg(
-        const ocs2_msgs::msg::ModeSchedule &modeScheduleMsg) {
+        const ocs2_msgs::msg::ModeSchedule& modeScheduleMsg)
+    {
         std::vector switchingTimes(modeScheduleMsg.event_times.begin(),
-                                             modeScheduleMsg.event_times.end());
+                                   modeScheduleMsg.event_times.end());
         std::vector<size_t> modeSequence(modeScheduleMsg.mode_sequence.begin(),
                                          modeScheduleMsg.mode_sequence.end());
         return {switchingTimes, modeSequence};
     }
 }
+#endif // MODESEQUENCETEMPLATEROS_H

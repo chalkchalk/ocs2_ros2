@@ -26,8 +26,9 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
+#ifndef GAITKEYBOARDPUBLISHER_H
+#define GAITKEYBOARDPUBLISHER_H
 
-#pragma once
 
 #include <ocs2_legged_robot/gait/ModeSequenceTemplate.h>
 
@@ -37,13 +38,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <rclcpp/rclcpp.hpp>
 
-namespace ocs2::legged_robot {
+namespace ocs2::legged_robot
+{
     /** This class implements mode_sequence communication using ROS. */
-    class GaitKeyboardPublisher {
+    class GaitKeyboardPublisher
+    {
     public:
-        GaitKeyboardPublisher(const rclcpp::Node::SharedPtr &node,
-                              const std::string &gaitFile,
-                              const std::string &robotName, bool verbose = false);
+        GaitKeyboardPublisher(const rclcpp::Node::SharedPtr& node,
+                              const std::string& gaitFile,
+                              const std::string& robotName, bool verbose = false);
 
         /** Prints the command line interface and responds to user input. Function
          * returns after one user input. */
@@ -51,7 +54,7 @@ namespace ocs2::legged_robot {
 
     private:
         /** Prints the list of available gaits. */
-        static void printGaitList(const std::vector<std::string> &gaitList);
+        static void printGaitList(const std::vector<std::string>& gaitList);
 
         std::vector<std::string> gaitList_;
         std::map<std::string, ModeSequenceTemplate> gaitMap_;
@@ -60,3 +63,4 @@ namespace ocs2::legged_robot {
         modeSequenceTemplatePublisher_;
     };
 }
+#endif // GAITKEYBOARDPUBLISHER_H

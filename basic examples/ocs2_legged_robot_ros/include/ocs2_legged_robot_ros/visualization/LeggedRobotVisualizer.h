@@ -26,8 +26,10 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
+#ifndef LEGGEDROBOTVISUALIZER_H
+#define LEGGEDROBOTVISUALIZER_H
 
-#pragma once
+
 #include <ocs2_centroidal_model/CentroidalModelInfo.h>
 #include <ocs2_core/Types.h>
 #include <ocs2_legged_robot/common/Types.h>
@@ -43,8 +45,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "rclcpp/rclcpp.hpp"
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
-namespace ocs2::legged_robot {
-    class LeggedRobotVisualizer : public DummyObserver {
+namespace ocs2::legged_robot
+{
+    class LeggedRobotVisualizer final : public DummyObserver
+    {
     public:
         /** Visualization settings (publicly available) */
         std::string frameId_ = "odom"; // Frame name all messages are published in
@@ -53,9 +57,9 @@ namespace ocs2::legged_robot {
         scalar_t forceScale_ = 1000.0; // Vector scale in N/m
         scalar_t velScale_ = 5.0; // Vector scale in m/s
         scalar_t copMarkerDiameter_ =
-                0.03; // Size of the sphere at the center of pressure
+            0.03; // Size of the sphere at the center of pressure
         scalar_t supportPolygonLineWidth_ =
-                0.005; // LineThickness for the support polygon
+            0.005; // LineThickness for the support polygon
         scalar_t trajectoryLineWidth_ = 0.01; // LineThickness for trajectories
         std::vector<Color> feetColorMap_ = {
             Color::blue, Color::orange, Color::yellow,
@@ -70,51 +74,55 @@ namespace ocs2::legged_robot {
         LeggedRobotVisualizer(
             PinocchioInterface pinocchioInterface,
             CentroidalModelInfo centroidalModelInfo,
-            const PinocchioEndEffectorKinematics &endEffectorKinematics,
-            const rclcpp::Node::SharedPtr &node, scalar_t maxUpdateFrequency = 100.0);
+            const PinocchioEndEffectorKinematics& endEffectorKinematics,
+            const rclcpp::Node::SharedPtr& node, scalar_t maxUpdateFrequency = 100.0);
 
         LeggedRobotVisualizer(
             PinocchioInterface pinocchioInterface,
             CentroidalModelInfo centroidalModelInfo,
-            const PinocchioEndEffectorKinematics &endEffectorKinematics,
-            const rclcpp_lifecycle::LifecycleNode::SharedPtr &node, scalar_t maxUpdateFrequency = 100.0);
+            const PinocchioEndEffectorKinematics& endEffectorKinematics,
+            const rclcpp_lifecycle::LifecycleNode::SharedPtr& node, scalar_t maxUpdateFrequency = 100.0);
 
         ~LeggedRobotVisualizer() override = default;
 
-        void update(const SystemObservation &observation,
-                    const PrimalSolution &primalSolution,
-                    const CommandData &command) override;
+        void update(const SystemObservation& observation,
+                    const PrimalSolution& primalSolution,
+                    const CommandData& command) override;
+
+        void update(const SystemObservation& observation);
+        void update(const PrimalSolution& primalSolution,
+                    const CommandData& command);
 
         void publishTrajectory(
-            const std::vector<SystemObservation> &system_observation_array,
+            const std::vector<SystemObservation>& system_observation_array,
             scalar_t speed = 1.0);
 
         void publishObservation(const rclcpp::Time& timeStamp,
-                                const SystemObservation &observation);
+                                const SystemObservation& observation);
 
         void publishDesiredTrajectory(const rclcpp::Time& timeStamp,
-                                      const TargetTrajectories &targetTrajectories);
+                                      const TargetTrajectories& targetTrajectories);
 
         void publishOptimizedStateTrajectory(const rclcpp::Time& timeStamp,
-                                             const scalar_array_t &mpcTimeTrajectory,
-                                             const vector_array_t &mpcStateTrajectory,
-                                             const ModeSchedule &modeSchedule);
+                                             const scalar_array_t& mpcTimeTrajectory,
+                                             const vector_array_t& mpcStateTrajectory,
+                                             const ModeSchedule& modeSchedule);
 
     protected:
         rclcpp::Clock::SharedPtr clock_;
 
     private:
-        LeggedRobotVisualizer(const LeggedRobotVisualizer &) = delete;
+        LeggedRobotVisualizer(const LeggedRobotVisualizer&) = delete;
 
         void publishJointTransforms(const rclcpp::Time& timeStamp,
-                                    const vector_t &jointAngles) const;
+                                    const vector_t& jointAngles) const;
 
-        void publishBaseTransform(const rclcpp::Time& timeStamp, const vector_t &basePose);
+        void publishBaseTransform(const rclcpp::Time& timeStamp, const vector_t& basePose);
 
         void publishCartesianMarkers(const rclcpp::Time& timeStamp,
-                                     const contact_flag_t &contactFlags,
-                                     const std::vector<vector3_t> &feetPositions,
-                                     const std::vector<vector3_t> &feetForces) const;
+                                     const contact_flag_t& contactFlags,
+                                     const std::vector<vector3_t>& feetPositions,
+                                     const std::vector<vector3_t>& feetForces) const;
 
         PinocchioInterface pinocchioInterface_;
         const CentroidalModelInfo centroidalModelInfo_;
@@ -138,3 +146,4 @@ namespace ocs2::legged_robot {
         scalar_t minPublishTimeDifference_;
     };
 }
+#endif // LEGGEDROBOTVISUALIZER_H

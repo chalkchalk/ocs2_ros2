@@ -49,94 +49,99 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <visualization_msgs/msg/marker_array.hpp>
 
 
-namespace ocs2::legged_robot {
+namespace ocs2::legged_robot
+{
     LeggedRobotVisualizer::LeggedRobotVisualizer(
         PinocchioInterface pinocchioInterface,
         CentroidalModelInfo centroidalModelInfo,
-        const PinocchioEndEffectorKinematics &endEffectorKinematics,
-        const rclcpp::Node::SharedPtr &node, scalar_t maxUpdateFrequency)
+        const PinocchioEndEffectorKinematics& endEffectorKinematics,
+        const rclcpp::Node::SharedPtr& node, scalar_t maxUpdateFrequency)
         : pinocchioInterface_(std::move(pinocchioInterface)),
           centroidalModelInfo_(std::move(centroidalModelInfo)),
           endEffectorKinematicsPtr_(endEffectorKinematics.clone()),
           tfBroadcaster_(node),
           lastTime_(std::numeric_limits<scalar_t>::lowest()),
-          minPublishTimeDifference_(1.0 / maxUpdateFrequency) {
+          minPublishTimeDifference_(1.0 / maxUpdateFrequency)
+    {
         clock_ = node->get_clock();
 
         endEffectorKinematicsPtr_->setPinocchioInterface(pinocchioInterface_);
         costDesiredBasePositionPublisher_ =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredBaseTrajectory", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredBaseTrajectory", 1);
         costDesiredFeetPositionPublishers_.resize(
             centroidalModelInfo_.numThreeDofContacts);
         costDesiredFeetPositionPublishers_[0] =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredFeetTrajectory/LF", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredFeetTrajectory/LF", 1);
         costDesiredFeetPositionPublishers_[1] =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredFeetTrajectory/RF", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredFeetTrajectory/RF", 1);
         costDesiredFeetPositionPublishers_[2] =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredFeetTrajectory/LH", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredFeetTrajectory/LH", 1);
         costDesiredFeetPositionPublishers_[3] =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredFeetTrajectory/RH", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredFeetTrajectory/RH", 1);
         stateOptimizedPublisher_ =
-                node->create_publisher<visualization_msgs::msg::MarkerArray>(
-                    "/legged_robot/optimizedStateTrajectory", 1);
+            node->create_publisher<visualization_msgs::msg::MarkerArray>(
+                "/legged_robot/optimizedStateTrajectory", 1);
         currentStatePublisher_ =
-                node->create_publisher<visualization_msgs::msg::MarkerArray>(
-                    "/legged_robot/currentState", 1);
+            node->create_publisher<visualization_msgs::msg::MarkerArray>(
+                "/legged_robot/currentState", 1);
 
         jointPublisher_ =
-                node->create_publisher<sensor_msgs::msg::JointState>("joint_states", 1);
+            node->create_publisher<sensor_msgs::msg::JointState>("joint_states", 1);
     }
 
     LeggedRobotVisualizer::LeggedRobotVisualizer(PinocchioInterface pinocchioInterface,
                                                  CentroidalModelInfo centroidalModelInfo,
-                                                 const PinocchioEndEffectorKinematics &endEffectorKinematics,
-                                                 const rclcpp_lifecycle::LifecycleNode::SharedPtr &node,
+                                                 const PinocchioEndEffectorKinematics& endEffectorKinematics,
+                                                 const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
                                                  scalar_t maxUpdateFrequency) : pinocchioInterface_(
             std::move(pinocchioInterface)),
         centroidalModelInfo_(std::move(centroidalModelInfo)),
         endEffectorKinematicsPtr_(endEffectorKinematics.clone()),
         tfBroadcaster_(node),
         lastTime_(std::numeric_limits<scalar_t>::lowest()),
-        minPublishTimeDifference_(1.0 / maxUpdateFrequency) {
+        minPublishTimeDifference_(1.0 / maxUpdateFrequency)
+    {
         clock_ = node->get_clock();
         endEffectorKinematicsPtr_->setPinocchioInterface(pinocchioInterface_);
         costDesiredBasePositionPublisher_ =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredBaseTrajectory", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredBaseTrajectory", 1);
         costDesiredFeetPositionPublishers_.resize(
             centroidalModelInfo_.numThreeDofContacts);
         costDesiredFeetPositionPublishers_[0] =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredFeetTrajectory/LF", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredFeetTrajectory/LF", 1);
         costDesiredFeetPositionPublishers_[1] =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredFeetTrajectory/RF", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredFeetTrajectory/RF", 1);
         costDesiredFeetPositionPublishers_[2] =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredFeetTrajectory/LH", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredFeetTrajectory/LH", 1);
         costDesiredFeetPositionPublishers_[3] =
-                node->create_publisher<visualization_msgs::msg::Marker>(
-                    "/legged_robot/desiredFeetTrajectory/RH", 1);
+            node->create_publisher<visualization_msgs::msg::Marker>(
+                "/legged_robot/desiredFeetTrajectory/RH", 1);
         stateOptimizedPublisher_ =
-                node->create_publisher<visualization_msgs::msg::MarkerArray>(
-                    "/legged_robot/optimizedStateTrajectory", 1);
+            node->create_publisher<visualization_msgs::msg::MarkerArray>(
+                "/legged_robot/optimizedStateTrajectory", 1);
         currentStatePublisher_ =
-                node->create_publisher<visualization_msgs::msg::MarkerArray>(
-                    "/legged_robot/currentState", 1);
+            node->create_publisher<visualization_msgs::msg::MarkerArray>(
+                "/legged_robot/currentState", 1);
     };
 
 
-    void LeggedRobotVisualizer::update(const SystemObservation &observation,
-                                       const PrimalSolution &primalSolution,
-                                       const CommandData &command) {
-        if (observation.time - lastTime_ > minPublishTimeDifference_) {
-            const auto &model = pinocchioInterface_.getModel();
-            auto &data = pinocchioInterface_.getData();
+    void LeggedRobotVisualizer::update(const SystemObservation& observation,
+                                       const PrimalSolution& primalSolution,
+                                       const CommandData& command)
+    {
+        if (observation.time - lastTime_ > minPublishTimeDifference_)
+        {
+            const auto& model = pinocchioInterface_.getModel();
+            auto& data = pinocchioInterface_.getData();
             forwardKinematics(model, data,
                               centroidal_model::getGeneralizedCoordinates(
                                   observation.state, centroidalModelInfo_));
@@ -152,20 +157,47 @@ namespace ocs2::legged_robot {
         }
     }
 
+    void LeggedRobotVisualizer::update(const SystemObservation& observation)
+    {
+        if (observation.time - lastTime_ > minPublishTimeDifference_)
+        {
+            const auto& model = pinocchioInterface_.getModel();
+            auto& data = pinocchioInterface_.getData();
+            forwardKinematics(model, data,
+                              centroidal_model::getGeneralizedCoordinates(
+                                  observation.state, centroidalModelInfo_));
+            updateFramePlacements(model, data);
+
+            const auto timeStamp = clock_->now();
+            lastTime_ = observation.time;
+        }
+    }
+
+    void LeggedRobotVisualizer::update(const PrimalSolution& primalSolution, const CommandData& command)
+    {
+        const auto timeStamp = clock_->now();
+        publishDesiredTrajectory(timeStamp, command.mpcTargetTrajectories_);
+        publishOptimizedStateTrajectory(timeStamp, primalSolution.timeTrajectory_,
+                                        primalSolution.stateTrajectory_,
+                                        primalSolution.modeSchedule_);
+    }
+
 
     void LeggedRobotVisualizer::publishObservation(
-        const rclcpp::Time& timeStamp, const SystemObservation &observation) {
+        const rclcpp::Time& timeStamp, const SystemObservation& observation)
+    {
         // Extract components from state
         const auto basePose =
-                centroidal_model::getBasePose(observation.state, centroidalModelInfo_);
+            centroidal_model::getBasePose(observation.state, centroidalModelInfo_);
         const auto qJoints =
-                centroidal_model::getJointAngles(observation.state, centroidalModelInfo_);
+            centroidal_model::getJointAngles(observation.state, centroidalModelInfo_);
 
         // Compute cartesian state and inputs
         const auto feetPositions =
-                endEffectorKinematicsPtr_->getPosition(observation.state);
+            endEffectorKinematicsPtr_->getPosition(observation.state);
         std::vector<vector3_t> feetForces(centroidalModelInfo_.numThreeDofContacts);
-        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++) {
+        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++)
+        {
             feetForces[i] = centroidal_model::getContactForces(observation.input, i,
                                                                centroidalModelInfo_);
         }
@@ -179,8 +211,10 @@ namespace ocs2::legged_robot {
 
 
     void LeggedRobotVisualizer::publishJointTransforms(
-        const rclcpp::Time& timeStamp, const vector_t &jointAngles) const {
-        if (jointPublisher_ != nullptr) {
+        const rclcpp::Time& timeStamp, const vector_t& jointAngles) const
+    {
+        if (jointPublisher_ != nullptr)
+        {
             sensor_msgs::msg::JointState joint_state;
             joint_state.header.stamp = clock_->now();
             joint_state.name.resize(12);
@@ -215,33 +249,38 @@ namespace ocs2::legged_robot {
 
 
     void LeggedRobotVisualizer::publishBaseTransform(const rclcpp::Time& timeStamp,
-                                                     const vector_t &basePose) {
+                                                     const vector_t& basePose)
+    {
         geometry_msgs::msg::TransformStamped baseToWorldTransform;
         baseToWorldTransform.header = getHeaderMsg(frameId_, timeStamp);
         baseToWorldTransform.child_frame_id = "base";
 
         const Eigen::Quaternion<scalar_t> q_world_base =
-                getQuaternionFromEulerAnglesZyx(vector3_t(basePose.tail<3>()));
+            getQuaternionFromEulerAnglesZyx(vector3_t(basePose.tail<3>()));
         baseToWorldTransform.transform.rotation = getOrientationMsg(q_world_base);
         baseToWorldTransform.transform.translation =
-                getVectorMsg(basePose.head<3>());
+            getVectorMsg(basePose.head<3>());
         tfBroadcaster_.sendTransform(baseToWorldTransform);
     }
 
 
     void LeggedRobotVisualizer::publishTrajectory(
-        const std::vector<SystemObservation> &system_observation_array,
-        scalar_t speed) {
-        for (size_t k = 0; k < system_observation_array.size() - 1; k++) {
+        const std::vector<SystemObservation>& system_observation_array,
+        scalar_t speed)
+    {
+        for (size_t k = 0; k < system_observation_array.size() - 1; k++)
+        {
             scalar_t frameDuration = speed * (system_observation_array[k + 1].time -
-                                              system_observation_array[k].time);
-            scalar_t publishDuration = timedExecutionInSeconds([&]() {
+                system_observation_array[k].time);
+            scalar_t publishDuration = timedExecutionInSeconds([&]()
+            {
                 publishObservation(clock_->now(),
                                    system_observation_array[k]);
             });
-            if (frameDuration > publishDuration) {
+            if (frameDuration > publishDuration)
+            {
                 const rclcpp::Duration duration =
-                        rclcpp::Duration::from_seconds(frameDuration - publishDuration);
+                    rclcpp::Duration::from_seconds(frameDuration - publishDuration);
                 rclcpp::sleep_for((std::chrono::nanoseconds(duration.nanoseconds())));
             }
         }
@@ -249,16 +288,18 @@ namespace ocs2::legged_robot {
 
 
     void LeggedRobotVisualizer::publishCartesianMarkers(
-        const rclcpp::Time &timeStamp, const contact_flag_t &contactFlags,
-        const std::vector<vector3_t> &feetPositions,
-        const std::vector<vector3_t> &feetForces) const {
+        const rclcpp::Time& timeStamp, const contact_flag_t& contactFlags,
+        const std::vector<vector3_t>& feetPositions,
+        const std::vector<vector3_t>& feetForces) const
+    {
         // Reserve message
         const size_t numberOfCartesianMarkers = 10;
         visualization_msgs::msg::MarkerArray markerArray;
         markerArray.markers.reserve(numberOfCartesianMarkers);
 
         // Feet positions and Forces
-        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; ++i) {
+        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; ++i)
+        {
             markerArray.markers.emplace_back(
                 getFootMarker(feetPositions[i], contactFlags[i], feetColorMap_[i],
                               footMarkerDiameter_, footAlphaWhenLifted_));
@@ -288,32 +329,38 @@ namespace ocs2::legged_robot {
 
 
     void LeggedRobotVisualizer::publishDesiredTrajectory(
-        const rclcpp::Time &timeStamp, const TargetTrajectories &targetTrajectories) {
-        const auto &stateTrajectory = targetTrajectories.stateTrajectory;
-        const auto &inputTrajectory = targetTrajectories.inputTrajectory;
+        const rclcpp::Time& timeStamp, const TargetTrajectories& targetTrajectories)
+    {
+        const auto& stateTrajectory = targetTrajectories.stateTrajectory;
+        const auto& inputTrajectory = targetTrajectories.inputTrajectory;
 
         // Reserve com messages
         std::vector<geometry_msgs::msg::Point> desiredBasePositionMsg;
         desiredBasePositionMsg.reserve(stateTrajectory.size());
 
         // Reserve feet messages
-        feet_array_t<std::vector<geometry_msgs::msg::Point> > desiredFeetPositionMsgs;
-        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++) {
+        feet_array_t<std::vector<geometry_msgs::msg::Point>> desiredFeetPositionMsgs;
+        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++)
+        {
             desiredFeetPositionMsgs[i].reserve(stateTrajectory.size());
         }
 
-        for (size_t j = 0; j < stateTrajectory.size(); j++) {
+        for (size_t j = 0; j < stateTrajectory.size(); j++)
+        {
             const auto state = stateTrajectory.at(j);
             vector_t input(centroidalModelInfo_.inputDim);
-            if (j < inputTrajectory.size()) {
+            if (j < inputTrajectory.size())
+            {
                 input = inputTrajectory.at(j);
-            } else {
+            }
+            else
+            {
                 input.setZero();
             }
 
             // Construct base pose msg
             const auto basePose =
-                    centroidal_model::getBasePose(state, centroidalModelInfo_);
+                centroidal_model::getBasePose(state, centroidalModelInfo_);
             geometry_msgs::msg::Pose pose;
             pose.position = getPointMsg(basePose.head<3>());
 
@@ -321,15 +368,16 @@ namespace ocs2::legged_robot {
             desiredBasePositionMsg.push_back(pose.position);
 
             // Fill feet msgs
-            const auto &model = pinocchioInterface_.getModel();
-            auto &data = pinocchioInterface_.getData();
+            const auto& model = pinocchioInterface_.getModel();
+            auto& data = pinocchioInterface_.getData();
             forwardKinematics(model, data,
                               centroidal_model::getGeneralizedCoordinates(
                                   state, centroidalModelInfo_));
             updateFramePlacements(model, data);
 
             const auto feetPositions = endEffectorKinematicsPtr_->getPosition(state);
-            for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++) {
+            for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++)
+            {
                 geometry_msgs::msg::Pose footPose;
                 footPose.position = getPointMsg(feetPositions[i]);
                 desiredFeetPositionMsgs[i].push_back(footPose.position);
@@ -344,7 +392,8 @@ namespace ocs2::legged_robot {
 
         // Publish
         costDesiredBasePositionPublisher_->publish(comLineMsg);
-        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++) {
+        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++)
+        {
             auto footLineMsg = getLineMsg(std::move(desiredFeetPositionMsgs[i]),
                                           feetColorMap_[i], trajectoryLineWidth_);
             footLineMsg.header = getHeaderMsg(frameId_, timeStamp);
@@ -355,17 +404,20 @@ namespace ocs2::legged_robot {
 
 
     void LeggedRobotVisualizer::publishOptimizedStateTrajectory(
-        const rclcpp::Time &timeStamp, const scalar_array_t &mpcTimeTrajectory,
-        const vector_array_t &mpcStateTrajectory,
-        const ModeSchedule &modeSchedule) {
-        if (mpcTimeTrajectory.empty() || mpcStateTrajectory.empty()) {
+        const rclcpp::Time& timeStamp, const scalar_array_t& mpcTimeTrajectory,
+        const vector_array_t& mpcStateTrajectory,
+        const ModeSchedule& modeSchedule)
+    {
+        if (mpcTimeTrajectory.empty() || mpcStateTrajectory.empty())
+        {
             return; // Nothing to publish
         }
 
         // Reserve Feet msg
-        feet_array_t<std::vector<geometry_msgs::msg::Point> > feetMsgs;
+        feet_array_t<std::vector<geometry_msgs::msg::Point>> feetMsgs;
         std::for_each(feetMsgs.begin(), feetMsgs.end(),
-                      [&](std::vector<geometry_msgs::msg::Point> &v) {
+                      [&](std::vector<geometry_msgs::msg::Point>& v)
+                      {
                           v.reserve(mpcStateTrajectory.size());
                       });
 
@@ -376,9 +428,10 @@ namespace ocs2::legged_robot {
         // Extract Com and Feet from state
         std::for_each(
             mpcStateTrajectory.begin(), mpcStateTrajectory.end(),
-            [&](const vector_t &state) {
+            [&](const vector_t& state)
+            {
                 const auto basePose =
-                        centroidal_model::getBasePose(state, centroidalModelInfo_);
+                    centroidal_model::getBasePose(state, centroidalModelInfo_);
 
                 // Fill com position and pose msgs
                 geometry_msgs::msg::Pose pose;
@@ -386,8 +439,8 @@ namespace ocs2::legged_robot {
                 mpcComPositionMsgs.push_back(pose.position);
 
                 // Fill feet msgs
-                const auto &model = pinocchioInterface_.getModel();
-                auto &data = pinocchioInterface_.getData();
+                const auto& model = pinocchioInterface_.getModel();
+                auto& data = pinocchioInterface_.getData();
                 forwardKinematics(
                     model, data,
                     centroidal_model::getGeneralizedCoordinates(state,
@@ -395,8 +448,9 @@ namespace ocs2::legged_robot {
                 updateFramePlacements(model, data);
 
                 const auto feetPositions =
-                        endEffectorKinematicsPtr_->getPosition(state);
-                for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++) {
+                    endEffectorKinematicsPtr_->getPosition(state);
+                for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++)
+                {
                     const auto position = getPointMsg(feetPositions[i]);
                     feetMsgs[i].push_back(position);
                 }
@@ -405,9 +459,10 @@ namespace ocs2::legged_robot {
         // Convert feet msgs to Array message
         visualization_msgs::msg::MarkerArray markerArray;
         markerArray.markers.reserve(centroidalModelInfo_.numThreeDofContacts +
-                                    2); // 1 trajectory per foot + 1 for the future
+            2); // 1 trajectory per foot + 1 for the future
         // footholds + 1 for the com trajectory
-        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++) {
+        for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++)
+        {
             markerArray.markers.emplace_back(getLineMsg(
                 std::move(feetMsgs[i]), feetColorMap_[i], trajectoryLineWidth_));
             markerArray.markers.back().ns = "EE Trajectories";
@@ -424,34 +479,38 @@ namespace ocs2::legged_robot {
         sphereList.scale.z = footMarkerDiameter_;
         sphereList.ns = "Future footholds";
         sphereList.pose.orientation = getOrientationMsg({1., 0., 0., 0.});
-        const auto &eventTimes = modeSchedule.eventTimes;
-        const auto &subsystemSequence = modeSchedule.modeSequence;
+        const auto& eventTimes = modeSchedule.eventTimes;
+        const auto& subsystemSequence = modeSchedule.modeSequence;
         const auto tStart = mpcTimeTrajectory.front();
         const auto tEnd = mpcTimeTrajectory.back();
-        for (size_t event = 0; event < eventTimes.size(); ++event) {
+        for (size_t event = 0; event < eventTimes.size(); ++event)
+        {
             if (tStart < eventTimes[event] &&
-                eventTimes[event] < tEnd) {
+                eventTimes[event] < tEnd)
+            {
                 // Only publish future footholds within the
                 // optimized horizon
                 const auto preEventContactFlags =
-                        modeNumber2StanceLeg(subsystemSequence[event]);
+                    modeNumber2StanceLeg(subsystemSequence[event]);
                 const auto postEventContactFlags =
-                        modeNumber2StanceLeg(subsystemSequence[event + 1]);
+                    modeNumber2StanceLeg(subsystemSequence[event + 1]);
                 const auto postEventState = LinearInterpolation::interpolate(
                     eventTimes[event], mpcTimeTrajectory, mpcStateTrajectory);
 
-                const auto &model = pinocchioInterface_.getModel();
-                auto &data = pinocchioInterface_.getData();
+                const auto& model = pinocchioInterface_.getModel();
+                auto& data = pinocchioInterface_.getData();
                 forwardKinematics(model, data,
                                   centroidal_model::getGeneralizedCoordinates(
                                       postEventState, centroidalModelInfo_));
                 updateFramePlacements(model, data);
 
                 const auto feetPosition =
-                        endEffectorKinematicsPtr_->getPosition(postEventState);
-                for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++) {
+                    endEffectorKinematicsPtr_->getPosition(postEventState);
+                for (size_t i = 0; i < centroidalModelInfo_.numThreeDofContacts; i++)
+                {
                     if (!preEventContactFlags[i] &&
-                        postEventContactFlags[i]) {
+                        postEventContactFlags[i])
+                    {
                         // If a foot lands, a marker is added
                         // at that location.
                         sphereList.points.emplace_back(getPointMsg(feetPosition[i]));

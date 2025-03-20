@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
+set(CMAKE_CXX_STANDARD 17)
 project(segmented_planes_terrain_model)
 
 set(CMAKE_BUILD_TYPE Release)
@@ -30,13 +31,11 @@ add_library(${PROJECT_NAME}
         src/SegmentedPlanesTerrainModelRos.cpp
         src/SegmentedPlanesTerrainVisualization.cpp
 )
-
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         ${PCL_INCLUDE_DIRS}
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
-
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})
 target_compile_options(${PROJECT_NAME} PUBLIC -DCGAL_HAS_THREADS)
 

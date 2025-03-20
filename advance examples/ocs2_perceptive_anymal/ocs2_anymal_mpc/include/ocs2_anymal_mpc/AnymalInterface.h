@@ -9,16 +9,17 @@
 #include <ocs2_anymal_models/AnymalModels.h>
 #include <ocs2_anymal_models/FrameDeclaration.h>
 
-namespace anymal {
+namespace anymal
+{
+    std::unique_ptr<switched_model::QuadrupedInterface> getAnymalInterface(
+        const std::string& urdf, const std::string& taskFolder);
 
-std::unique_ptr<switched_model::QuadrupedInterface> getAnymalInterface(const std::string& urdf, const std::string& taskFolder);
+    std::unique_ptr<switched_model::QuadrupedInterface> getAnymalInterface(const std::string& urdf,
+                                                                           switched_model::QuadrupedInterface::Settings
+                                                                           settings,
+                                                                           const FrameDeclaration& frameDeclaration);
 
-std::unique_ptr<switched_model::QuadrupedInterface> getAnymalInterface(const std::string& urdf,
-                                                                       switched_model::QuadrupedInterface::Settings settings,
-                                                                       const FrameDeclaration& frameDeclaration);
+    std::string getConfigFolder(const std::string& configName);
 
-std::string getConfigFolder(const std::string& configName);
-
-std::string getTaskFilePath(const std::string& configName);
-
-}  // end of namespace anymal
+    std::string getTaskFilePath(const std::string& configName);
+} // end of namespace anymal

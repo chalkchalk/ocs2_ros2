@@ -5,8 +5,8 @@ This package provided a perceptive mpc demo to allow Anymal_c robot to cross dif
 ## 1. Build the package
 
 ```bash
-cd ~/ocs2_ws/
-colcon build --packages-up-to ocs2_anymal_loopshaping_mpc 
+cd ~/ros2_ws/
+colcon build --packages-up-to ocs2_anymal_loopshaping_mpc --symlink-install
 ```
 
 ## 2. Perceptive MPC demo

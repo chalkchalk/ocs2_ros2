@@ -10,7 +10,6 @@
 
     <buildtool_depend>ament_cmake</buildtool_depend>
 
-    <depend>grid_map_sdf</depend>
     <depend>ocs2_anymal_models</depend>
     <depend>ocs2_quadruped_interface</depend>
 

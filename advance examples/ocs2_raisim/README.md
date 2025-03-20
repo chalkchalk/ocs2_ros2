@@ -20,12 +20,12 @@ set(CMAKE_PREFIX_PATH "~/raisimLib/raisim/linux" ${CMAKE_PREFIX_PATH})
 
 * build the package
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_legged_robot_raisim
 ```
 
 * launch the simulation
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_legged_robot_raisim legged_robot_ddp_raisim.launch.py 
 ```

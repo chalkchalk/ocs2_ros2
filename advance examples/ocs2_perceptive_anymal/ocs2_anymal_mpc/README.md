@@ -6,12 +6,12 @@ This package provide a mpc example for Anymal quadruped robot. Besides the basic
 
 * build command
 ```bash
-cd ~/ocs2_ws/
+cd ~/ros2_ws/
 colcon build --packages-up-to ocs2_anymal_mpc
 ```
 
 * launch command
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_anymal_mpc anymal_c.launch.py
 ```

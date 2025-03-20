@@ -48,29 +48,29 @@ ONNX Runtime is an inferencing and training accelerator. Here, it is used for de
 
 ### 2.1 Ballbot
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_ballbot_mpcnet
 ```
 
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_ballbot_mpcnet ballbot_mpcnet.launch.py
 ```
 
 ### 2.2 Legged Robot
 * build the package
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_legged_robot_mpcnet
 ```
 * launch the simulation without raisim
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_legged_robot_mpcnet default.launch.py
 ```
 * launch the simulation with raisim
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_legged_robot_mpcnet raisim.launch.py
 ```
 
@@ -100,13 +100,13 @@ below command assumes that you are in the venv and sourced ros2 workspace.
 ### 3.2 Ballbot
 * train the MPC-Net
 ```bash
-source ~/ocs2_ws/install/setup.bash
-cd ~/ocs2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_ballbot_mpcnet/ocs2_ballbot_mpcnet
+source ~/ros2_ws/install/setup.bash
+cd ~/ros2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_ballbot_mpcnet/ocs2_ballbot_mpcnet
 python train.py
 ```
 * check the tensorboard
 ```bash
-cd ~/ocs2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_ballbot_mpcnet/ocs2_ballbot_mpcnet
+cd ~/ros2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_ballbot_mpcnet/ocs2_ballbot_mpcnet
 tensorboard --logdir=runs
 ```
 to run the trained model, copy the .onnx and .pt file in the runs folder to the policy folder. 
@@ -114,18 +114,18 @@ to run the trained model, copy the .onnx and .pt file in the runs folder to the 
 ### 3.3 Legged Robot
 * train the MPC-Net
 ```bash
-source ~/ocs2_ws/install/setup.bash
-cd ~/ocs2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_legged_robot_mpcnet/ocs2_legged_robot_mpcnet
+source ~/ros2_ws/install/setup.bash
+cd ~/ros2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_legged_robot_mpcnet/ocs2_legged_robot_mpcnet
 python train.py
 ```
 * train the MPC-Net with the raisim environment
 ```bash
-source ~/ocs2_ws/install/setup.bash
-cd ~/ocs2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_legged_robot_mpcnet/ocs2_legged_robot_mpcnet
+source ~/ros2_ws/install/setup.bash
+cd ~/ros2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_legged_robot_mpcnet/ocs2_legged_robot_mpcnet
 python train.py legged_robot_raisim.yaml
 ```
 * check the tensorboard
 ```bash
-cd ~/ocs2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_legged_robot_mpcnet/ocs2_legged_robot_mpcnet
+cd ~/ros2_ws/src/ocs2_ros2/advance\ examples/ocs2_mpcnet/ocs2_legged_robot_mpcnet/ocs2_legged_robot_mpcnet
 tensorboard --logdir=runs
 ```

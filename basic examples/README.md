@@ -7,12 +7,12 @@ This folder contains basic examples for the OCS2 library.
 
 * build
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_double_integrator_ros
 ```
 * run
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_double_integrator_ros double_integrator.launch.py
 ```
 
@@ -21,12 +21,12 @@ ros2 launch ocs2_double_integrator_ros double_integrator.launch.py
 
 * build
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_cartpole_ros
 ```
 * run
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_cartpole_ros cartpole.launch.py
 ```
 
@@ -35,12 +35,12 @@ ros2 launch ocs2_cartpole_ros cartpole.launch.py
 
 * build
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_ballbot_ros
 ```
 * run
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
 ```
 
@@ -48,12 +48,12 @@ ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
 
 * build
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_quadrotor_ros 
 ```
 * run
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_quadrotor_ros quadrotor.launch.py
 ```
 
@@ -61,32 +61,32 @@ ros2 launch ocs2_quadrotor_ros quadrotor.launch.py
 
 * build
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_mobile_manipulator_ros 
 ```
 * run Mabi-Mobile
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros manipulator_mabi_mobile.launch.py
 ```
 * run Kinova Jaco2
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n6.launch.py
 ```
 * run Franka Panda
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros manipulator_franka.launch.py
 ```
 * run Willow Garage PR2
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros manipulator_pr2.launch.py
 ```
 * run Clearpath Ridgeback with UR-5
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5.launch.py 
 ```
 
@@ -94,11 +94,11 @@ ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5.launch.py
 ## 6. [Legged Robot](https://leggedrobotics.github.io/ocs2/robotic_examples.html#legged-robot)
 * build
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 colcon build --packages-up-to ocs2_legged_robot_ros
 ```
 * run
 ```bash
-source ~/ocs2_ws/install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_legged_robot_ros legged_robot_ddp.launch.py
 ```

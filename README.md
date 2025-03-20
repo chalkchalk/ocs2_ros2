@@ -21,6 +21,7 @@ The IDE I used is CLion, you can follow the [guide](https://www.jetbrains.com/he
 the IDE.
 
 Below is my tested platform:
+
 * Intel Nuc X15 (i7-11800H):
     * Ubuntu 22.04 ROS2 Humble (WSL2)
     * Ubuntu 24.04 ROS2 Jazzy
@@ -28,8 +29,6 @@ Below is my tested platform:
     * Ubuntu 24.04 ROS2 Jazzy
 * Jetson Orin Nano
     * Ubuntu 22.04 ROS2 Humble (JetPack 6.1)
-
-
 
 ## 2. Installation
 
@@ -49,6 +48,7 @@ Tested system and ROS2 version:
 * Eigen (v3.4)
 * Boost C++ (v1.74)
 * [Pinocchio](https://stack-of-tasks.github.io/pinocchio/download.html)
+
 > **Warm Reminder**: Please follow the guide in the link to install Pinocchio before building the project
 
 ### 2.3 Clone Repositories
@@ -57,13 +57,13 @@ Tested system and ROS2 version:
 
 ```bash
 cd ~
-mkdir -p ocs2_ws/src
+mkdir -p ros2_ws/src
 ```
 
 * Clone the repository
 
 ```bash
-cd ~/ocs2_ws/src
+cd ~/ros2_ws/src
 git clone https://github.com/legubiao/ocs2_ros2
 cd ocs2_ros2
 git submodule update --init --recursive
@@ -72,7 +72,7 @@ git submodule update --init --recursive
 * rosdep
 
 ```bash
-cd ~/ocs2_ws
+cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 ```
 
@@ -82,12 +82,12 @@ Quick start guide:
 
 * Compile legged robot example
     ```bash
-    cd ~/ocs2_ws
+    cd ~/ros2_ws
     colcon build --packages-up-to ocs2_legged_robot_ros
     ```
 * Run the legged robot example
     ```bash
-    source ~/ocs2_ws/install/setup.bash
+    source ~/ros2_ws/install/setup.bash
     ros2 launch ocs2_legged_robot_ros legged_robot_ddp.launch.py
     ```
 

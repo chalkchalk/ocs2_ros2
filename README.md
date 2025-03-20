@@ -15,7 +15,7 @@ ROS2 and modern cmake. Below is the current todolist of the project:
 - [x] raisim demo
 - [x] mpc_net demo
 - [x] **[2025-01-16]** Pinnochio 3 support, removed hpp-fcl dependency
-- [x] **[2025-03-15]** Removed unused SphereInterface
+- [x] **[2025-03-20]** Add forked Gridmap SDF
 
 The IDE I used is CLion, you can follow the [guide](https://www.jetbrains.com/help/clion/ros2-tutorial.html) to set up
 the IDE.

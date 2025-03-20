@@ -9,6 +9,7 @@ set(dependencies
         pinocchio
         urdf
         urdfdom
+        coal
 )
 
 find_package(ament_cmake REQUIRED)
@@ -16,6 +17,7 @@ find_package(ocs2_robotic_tools REQUIRED)
 find_package(urdf REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(pinocchio REQUIRED)
+find_package(coal REQUIRED)
 
 # Add pinocchio configurations
 include(cmake/pinocchio_config.cmake)
@@ -35,6 +37,7 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         ${pinocchio_INCLUDE_DIRS}
+        ${COAL_INCLUDE_DIRS}
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 

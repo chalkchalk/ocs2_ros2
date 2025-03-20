@@ -8,7 +8,7 @@ This folder contains basic examples for the OCS2 library.
 * build
 ```bash
 cd ~/ros2_ws
-colcon build --packages-up-to ocs2_double_integrator_ros
+colcon build --packages-up-to ocs2_double_integrator_ros --symlink-install
 ```
 * run
 ```bash
@@ -22,7 +22,7 @@ ros2 launch ocs2_double_integrator_ros double_integrator.launch.py
 * build
 ```bash
 cd ~/ros2_ws
-colcon build --packages-up-to ocs2_cartpole_ros
+colcon build --packages-up-to ocs2_cartpole_ros --symlink-install
 ```
 * run
 ```bash
@@ -36,7 +36,7 @@ ros2 launch ocs2_cartpole_ros cartpole.launch.py
 * build
 ```bash
 cd ~/ros2_ws
-colcon build --packages-up-to ocs2_ballbot_ros
+colcon build --packages-up-to ocs2_ballbot_ros --symlink-install
 ```
 * run
 ```bash
@@ -49,7 +49,7 @@ ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
 * build
 ```bash
 cd ~/ros2_ws
-colcon build --packages-up-to ocs2_quadrotor_ros 
+colcon build --packages-up-to ocs2_quadrotor_ros --symlink-install
 ```
 * run
 ```bash
@@ -62,7 +62,7 @@ ros2 launch ocs2_quadrotor_ros quadrotor.launch.py
 * build
 ```bash
 cd ~/ros2_ws
-colcon build --packages-up-to ocs2_mobile_manipulator_ros 
+colcon build --packages-up-to ocs2_mobile_manipulator_ros --symlink-install
 ```
 * run Mabi-Mobile
 ```bash
@@ -95,7 +95,7 @@ ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5.launch.py
 * build
 ```bash
 cd ~/ros2_ws
-colcon build --packages-up-to ocs2_legged_robot_ros
+colcon build --packages-up-to ocs2_legged_robot_ros --symlink-install
 ```
 * run
 ```bash

@@ -83,7 +83,7 @@ Quick start guide:
 * Compile legged robot example
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to ocs2_legged_robot_ros
+    colcon build --packages-up-to ocs2_legged_robot_ros --symlink-install
     ```
 * Run the legged robot example
     ```bash

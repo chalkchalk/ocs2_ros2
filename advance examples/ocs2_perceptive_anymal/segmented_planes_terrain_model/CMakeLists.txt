@@ -17,7 +17,6 @@ find_package(ament_cmake REQUIRED)
 find_package(convex_plane_decomposition_ros REQUIRED)
 find_package(ocs2_switched_model_interface REQUIRED)
 find_package(grid_map_sdf REQUIRED)
-find_package(PCL REQUIRED)
 
 # Cpp standard version
 set(CMAKE_CXX_STANDARD 17)
@@ -33,7 +32,6 @@ add_library(${PROJECT_NAME}
 )
 target_include_directories(${PROJECT_NAME}
         PUBLIC
-        ${PCL_INCLUDE_DIRS}
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})

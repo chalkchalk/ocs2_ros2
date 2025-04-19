@@ -35,7 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_pinocchio_interface/PinocchioStateInputMapping.h>
 #include <ocs2_self_collision/SelfCollisionCppAd.h>
 
-namespace ocs2 {
+namespace ocs2
+{
     /**
      * This class provides the CppAD variant of the Self-collision constraints. Therefore no pre-computation is required. The class has
      * two constructors. The constructor with an additional argument, "updateCallback", is meant for cases that PinocchioStateInputMapping
@@ -43,10 +44,11 @@ namespace ocs2 {
      *
      * See also SelfCollisionConstraint, which uses analytical computation and caching.
      */
-    class SelfCollisionConstraintCppAd final : public StateConstraint {
+    class SelfCollisionConstraintCppAd final : public StateConstraint
+    {
     public:
         using update_pinocchio_interface_callback =
-        std::function<void(const vector_t & state, PinocchioInterfaceTpl<scalar_t> & pinocchioInterface)>;
+        std::function<void(const vector_t& state, PinocchioInterfaceTpl<scalar_t>& pinocchioInterface)>;
 
         /**
          * Constructor
@@ -62,9 +64,9 @@ namespace ocs2 {
          * @param [in] verbose: If true, print information. Otherwise, no information is printed.
          */
         SelfCollisionConstraintCppAd(PinocchioInterface pinocchioInterface,
-                                     const PinocchioStateInputMapping<scalar_t> &mapping,
+                                     const PinocchioStateInputMapping<scalar_t>& mapping,
                                      PinocchioGeometryInterface pinocchioGeometryInterface, scalar_t minimumDistance,
-                                     const std::string &modelName, const std::string &modelFolder = "/tmp/ocs2",
+                                     const std::string& modelName, const std::string& modelFolder = "/tmp/ocs2",
                                      bool recompileLibraries = true,
                                      bool verbose = true);
 
@@ -84,31 +86,31 @@ namespace ocs2 {
          * @param [in] verbose: If true, print information. Otherwise, no information is printed.
          */
         SelfCollisionConstraintCppAd(PinocchioInterface pinocchioInterface,
-                                     const PinocchioStateInputMapping<scalar_t> &mapping,
+                                     const PinocchioStateInputMapping<scalar_t>& mapping,
                                      PinocchioGeometryInterface pinocchioGeometryInterface, scalar_t minimumDistance,
-                                     update_pinocchio_interface_callback updateCallback, const std::string &modelName,
-                                     const std::string &modelFolder = "/tmp/ocs2", bool recompileLibraries = true,
+                                     update_pinocchio_interface_callback updateCallback, const std::string& modelName,
+                                     const std::string& modelFolder = "/tmp/ocs2", bool recompileLibraries = true,
                                      bool verbose = true);
 
         ~SelfCollisionConstraintCppAd() override = default;
 
-        SelfCollisionConstraintCppAd *clone() const override { return new SelfCollisionConstraintCppAd(*this); }
+        SelfCollisionConstraintCppAd* clone() const override { return new SelfCollisionConstraintCppAd(*this); }
 
         size_t getNumConstraints(scalar_t time) const override;
 
         /** Get the self collision distance values */
-        vector_t getValue(scalar_t time, const vector_t &state, const PreComputation &) const override;
+        vector_t getValue(scalar_t time, const vector_t& state, const PreComputation&) const override;
 
         /** Get the self collision distance approximation */
-        VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t &state,
-                                                                 const PreComputation &) const override;
+        VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t& state,
+                                                                 const PreComputation&) const override;
 
     private:
-        SelfCollisionConstraintCppAd(const SelfCollisionConstraintCppAd &rhs);
+        SelfCollisionConstraintCppAd(const SelfCollisionConstraintCppAd& rhs);
 
         mutable PinocchioInterface pinocchioInterface_;
         SelfCollisionCppAd selfCollision_;
-        std::unique_ptr<PinocchioStateInputMapping<scalar_t> > mappingPtr_;
+        std::unique_ptr<PinocchioStateInputMapping<scalar_t>> mappingPtr_;
         update_pinocchio_interface_callback updateCallback_;
     };
 } // namespace ocs2

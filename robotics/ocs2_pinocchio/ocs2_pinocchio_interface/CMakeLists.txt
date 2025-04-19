@@ -7,14 +7,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(dependencies
         ocs2_robotic_tools
         pinocchio
-        urdf
         urdfdom
         coal
 )
 
 find_package(ament_cmake REQUIRED)
 find_package(ocs2_robotic_tools REQUIRED)
-find_package(urdf REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(pinocchio REQUIRED)
 find_package(coal REQUIRED)

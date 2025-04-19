@@ -36,50 +36,53 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_core/Types.h>
 #include <ocs2_core/automatic_differentiation/Types.h>
 
-namespace ocs2 {
+namespace ocs2
+{
+    template <typename SCALAR>
+    class CentroidalModelInfoTpl;
 
-template <typename SCALAR>
-class CentroidalModelInfoTpl;
+    using CentroidalModelInfo = CentroidalModelInfoTpl<scalar_t>;
+    using CentroidalModelInfoCppAd = CentroidalModelInfoTpl<ad_scalar_t>;
 
-using CentroidalModelInfo = CentroidalModelInfoTpl<scalar_t>;
-using CentroidalModelInfoCppAd = CentroidalModelInfoTpl<ad_scalar_t>;
+    enum class CentroidalModelType { FullCentroidalDynamics, SingleRigidBodyDynamics };
 
-enum class CentroidalModelType { FullCentroidalDynamics, SingleRigidBodyDynamics };
+    std::string toString(CentroidalModelType type);
+    std::ostream& operator<<(std::ostream& os, CentroidalModelType type);
 
-std::string toString(CentroidalModelType type);
-std::ostream& operator<<(std::ostream& os, CentroidalModelType type);
+    template <typename SCALAR>
+    struct CentroidalModelInfoTpl
+    {
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-template <typename SCALAR>
-struct CentroidalModelInfoTpl {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        using scalar_t = SCALAR;
+        using vector_t = Eigen::Matrix<SCALAR, Eigen::Dynamic, 1>;
+        using vector3_t = Eigen::Matrix<SCALAR, 3, 1>;
+        using matrix3_t = Eigen::Matrix<SCALAR, 3, 3>;
 
-  using scalar_t = SCALAR;
-  using vector_t = Eigen::Matrix<SCALAR, Eigen::Dynamic, 1>;
-  using vector3_t = Eigen::Matrix<SCALAR, 3, 1>;
-  using matrix3_t = Eigen::Matrix<SCALAR, 3, 3>;
+        template <typename T> // Template for conditional compilation using SFINAE
+        using EnableIfScalar_t = typename std::enable_if<std::is_same<T, scalar_t>::value, bool>::type;
 
-  template <typename T>  // Template for conditional compilation using SFINAE
-  using EnableIfScalar_t = typename std::enable_if<std::is_same<T, scalar_t>::value, bool>::type;
+        CentroidalModelType centroidalModelType; // full centroidal dynamics OR single rigid body dynamics (SRBD)
+        size_t numThreeDofContacts; // 3DOF contacts, force only
+        size_t numSixDofContacts; // 6DOF contacts, force and torque
+        std::vector<size_t> endEffectorFrameIndices; // indices of end-effector frames [3DOF contacts, 6DOF contacts]
+        size_t generalizedCoordinatesNum; // number of generalized coordinates in the pinocchio model
+        size_t actuatedDofNum; // number of actuated degrees of freedom
+        size_t stateDim; // number of states needed to define the system flow map
+        size_t inputDim; // number of inputs needed to define the system flow map
+        scalar_t robotMass; // total robot mass
+        vector_t qPinocchioNominal; // nominal robot configuration used in the SRBD model
+        matrix3_t centroidalInertiaNominal;
+        // nominal robot centroidal inertia used in the SRBD model (expressed in nominal base frame)
+        vector3_t comToBasePositionNominal;
+        // nominal CoM to base position used in the SRBD model (expressed in nominal base frame)
 
-  CentroidalModelType centroidalModelType;      // full centroidal dynamics OR single rigid body dynamics (SRBD)
-  size_t numThreeDofContacts;                   // 3DOF contacts, force only
-  size_t numSixDofContacts;                     // 6DOF contacts, force and torque
-  std::vector<size_t> endEffectorFrameIndices;  // indices of end-effector frames [3DOF contacts, 6DOF contacts]
-  size_t generalizedCoordinatesNum;             // number of generalized coordinates in the pinocchio model
-  size_t actuatedDofNum;                        // number of actuated degrees of freedom
-  size_t stateDim;                              // number of states needed to define the system flow map
-  size_t inputDim;                              // number of inputs needed to define the system flow map
-  scalar_t robotMass;                           // total robot mass
-  vector_t qPinocchioNominal;                   // nominal robot configuration used in the SRBD model
-  matrix3_t centroidalInertiaNominal;           // nominal robot centroidal inertia used in the SRBD model (expressed in nominal base frame)
-  vector3_t comToBasePositionNominal;           // nominal CoM to base position used in the SRBD model (expressed in nominal base frame)
+        /** Casts CentroidalModelInfo to CentroidalModelInfoCppAD. */
+        template <typename T = SCALAR, EnableIfScalar_t<T>  = true>
+        CentroidalModelInfoCppAd toCppAd() const;
+    };
 
-  /** Casts CentroidalModelInfo to CentroidalModelInfoCppAD. */
-  template <typename T = SCALAR, EnableIfScalar_t<T> = true>
-  CentroidalModelInfoCppAd toCppAd() const;
-};
-
-/* Explicit template instantiation for scalar_t and ad_scalar_t */
-extern template struct CentroidalModelInfoTpl<scalar_t>;
-extern template struct CentroidalModelInfoTpl<ad_scalar_t>;
-}  // namespace ocs2
+    /* Explicit template instantiation for scalar_t and ad_scalar_t */
+    extern template struct CentroidalModelInfoTpl<scalar_t>;
+    extern template struct CentroidalModelInfoTpl<ad_scalar_t>;
+} // namespace ocs2

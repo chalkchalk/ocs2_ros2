@@ -32,87 +32,91 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ocs2_centroidal_model/AccessHelperFunctions.h"
 #include "ocs2_centroidal_model/ModelHelperFunctions.h"
 
-namespace ocs2 {
+namespace ocs2
+{
+    PinocchioCentroidalDynamicsAD::PinocchioCentroidalDynamicsAD(const PinocchioInterface& pinocchioInterface,
+                                                                 const CentroidalModelInfo& info,
+                                                                 const std::string& modelName,
+                                                                 const std::string& modelFolder,
+                                                                 bool recompileLibraries, bool verbose)
+    {
+        auto systemFlowMapFunc = [&](const ad_vector_t& x, ad_vector_t& y)
+        {
+            // initialize CppAD interface
+            auto pinocchioInterfaceCppAd = pinocchioInterface.toCppAd();
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-PinocchioCentroidalDynamicsAD::PinocchioCentroidalDynamicsAD(const PinocchioInterface& pinocchioInterface, const CentroidalModelInfo& info,
-                                                             const std::string& modelName, const std::string& modelFolder,
-                                                             bool recompileLibraries, bool verbose) {
-  auto systemFlowMapFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
-    // initialize CppAD interface
-    auto pinocchioInterfaceCppAd = pinocchioInterface.toCppAd();
+            // mapping
+            CentroidalModelPinocchioMappingCppAd mappingCppAd(info.toCppAd());
+            mappingCppAd.setPinocchioInterface(pinocchioInterfaceCppAd);
 
-    // mapping
-    CentroidalModelPinocchioMappingCppAd mappingCppAd(info.toCppAd());
-    mappingCppAd.setPinocchioInterface(pinocchioInterfaceCppAd);
+            ad_vector_t state = x.head(info.stateDim);
+            ad_vector_t input = x.tail(info.inputDim);
+            y = getValueCppAd(pinocchioInterfaceCppAd, mappingCppAd, state, input);
+        };
 
-    ad_vector_t state = x.head(info.stateDim);
-    ad_vector_t input = x.tail(info.inputDim);
-    y = getValueCppAd(pinocchioInterfaceCppAd, mappingCppAd, state, input);
-  };
+        systemFlowMapCppAdInterfacePtr_.reset(
+            new CppAdInterface(systemFlowMapFunc, info.stateDim + info.inputDim, modelName + "_systemFlowMap",
+                               modelFolder));
 
-  systemFlowMapCppAdInterfacePtr_.reset(
-      new CppAdInterface(systemFlowMapFunc, info.stateDim + info.inputDim, modelName + "_systemFlowMap", modelFolder));
+        if (recompileLibraries)
+        {
+            systemFlowMapCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
+        }
+        else
+        {
+            systemFlowMapCppAdInterfacePtr_->loadModelsIfAvailable(CppAdInterface::ApproximationOrder::First, verbose);
+        }
+    }
 
-  if (recompileLibraries) {
-    systemFlowMapCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
-  } else {
-    systemFlowMapCppAdInterfacePtr_->loadModelsIfAvailable(CppAdInterface::ApproximationOrder::First, verbose);
-  }
-}
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-PinocchioCentroidalDynamicsAD::PinocchioCentroidalDynamicsAD(const PinocchioCentroidalDynamicsAD& rhs)
-    : systemFlowMapCppAdInterfacePtr_(new CppAdInterface(*rhs.systemFlowMapCppAdInterfacePtr_)) {}
+    PinocchioCentroidalDynamicsAD::PinocchioCentroidalDynamicsAD(const PinocchioCentroidalDynamicsAD& rhs)
+        : systemFlowMapCppAdInterfacePtr_(new CppAdInterface(*rhs.systemFlowMapCppAdInterfacePtr_))
+    {
+    }
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-ad_vector_t PinocchioCentroidalDynamicsAD::getValueCppAd(PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-                                                         const CentroidalModelPinocchioMappingCppAd& mappingCppAd, const ad_vector_t& state,
-                                                         const ad_vector_t& input) {
-  const auto& info = mappingCppAd.getCentroidalModelInfo();
-  assert(info.stateDim == state.rows());
 
-  const ad_vector_t qPinocchio = mappingCppAd.getPinocchioJointPosition(state);
-  updateCentroidalDynamics(pinocchioInterfaceCppAd, info, qPinocchio);
+    ad_vector_t PinocchioCentroidalDynamicsAD::getValueCppAd(PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
+                                                             const CentroidalModelPinocchioMappingCppAd& mappingCppAd,
+                                                             const ad_vector_t& state,
+                                                             const ad_vector_t& input)
+    {
+        const auto& info = mappingCppAd.getCentroidalModelInfo();
+        assert(info.stateDim == state.rows());
 
-  ad_vector_t stateDerivative(info.stateDim);
+        const ad_vector_t qPinocchio = mappingCppAd.getPinocchioJointPosition(state);
+        updateCentroidalDynamics(pinocchioInterfaceCppAd, info, qPinocchio);
 
-  // compute center of mass acceleration and derivative of the normalized angular momentum
-  centroidal_model::getNormalizedMomentum(stateDerivative, info) =
-      getNormalizedCentroidalMomentumRate(pinocchioInterfaceCppAd, info, input);
+        ad_vector_t stateDerivative(info.stateDim);
 
-  // derivatives of the floating base variables + joint velocities
-  centroidal_model::getGeneralizedCoordinates(stateDerivative, info) = mappingCppAd.getPinocchioJointVelocity(state, input);
+        // compute center of mass acceleration and derivative of the normalized angular momentum
+        centroidal_model::getNormalizedMomentum(stateDerivative, info) =
+            getNormalizedCentroidalMomentumRate(pinocchioInterfaceCppAd, info, input);
 
-  return stateDerivative;
-}
+        // derivatives of the floating base variables + joint velocities
+        centroidal_model::getGeneralizedCoordinates(stateDerivative, info) = mappingCppAd.getPinocchioJointVelocity(
+            state, input);
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-vector_t PinocchioCentroidalDynamicsAD::getValue(scalar_t time, const vector_t& state, const vector_t& input) const {
-  const vector_t stateInput = (vector_t(state.rows() + input.rows()) << state, input).finished();
-  return systemFlowMapCppAdInterfacePtr_->getFunctionValue(stateInput);
-}
+        return stateDerivative;
+    }
 
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-VectorFunctionLinearApproximation PinocchioCentroidalDynamicsAD::getLinearApproximation(scalar_t time, const vector_t& state,
-                                                                                        const vector_t& input) const {
-  const vector_t stateInput = (vector_t(state.rows() + input.rows()) << state, input).finished();
-  VectorFunctionLinearApproximation approx;
-  approx.f = systemFlowMapCppAdInterfacePtr_->getFunctionValue(stateInput);
-  const matrix_t dynamicsJacobian = systemFlowMapCppAdInterfacePtr_->getJacobian(stateInput);
-  approx.dfdx = dynamicsJacobian.leftCols(state.rows());
-  approx.dfdu = dynamicsJacobian.rightCols(input.rows());
-  return approx;
-}
 
-}  // namespace ocs2
+    vector_t PinocchioCentroidalDynamicsAD::getValue(scalar_t time, const vector_t& state, const vector_t& input) const
+    {
+        const vector_t stateInput = (vector_t(state.rows() + input.rows()) << state, input).finished();
+        return systemFlowMapCppAdInterfacePtr_->getFunctionValue(stateInput);
+    }
+
+
+    VectorFunctionLinearApproximation PinocchioCentroidalDynamicsAD::getLinearApproximation(
+        scalar_t time, const vector_t& state,
+        const vector_t& input) const
+    {
+        const vector_t stateInput = (vector_t(state.rows() + input.rows()) << state, input).finished();
+        VectorFunctionLinearApproximation approx;
+        approx.f = systemFlowMapCppAdInterfacePtr_->getFunctionValue(stateInput);
+        const matrix_t dynamicsJacobian = systemFlowMapCppAdInterfacePtr_->getJacobian(stateInput);
+        approx.dfdx = dynamicsJacobian.leftCols(state.rows());
+        approx.dfdu = dynamicsJacobian.rightCols(input.rows());
+        return approx;
+    }
+} // namespace ocs2

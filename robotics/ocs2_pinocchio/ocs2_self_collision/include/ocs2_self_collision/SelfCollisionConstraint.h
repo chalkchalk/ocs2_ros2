@@ -35,12 +35,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_pinocchio_interface/PinocchioStateInputMapping.h>
 #include <ocs2_self_collision/SelfCollision.h>
 
-namespace ocs2 {
+namespace ocs2
+{
     /**
      *  This class provides a variant of the Self-collision constraints, which allows for caching. Therefore It is the user's
      *  responsibility to call the required updates on the PinocchioInterface in pre-computation requests.
      */
-    class SelfCollisionConstraint : public StateConstraint {
+    class SelfCollisionConstraint : public StateConstraint
+    {
     public:
         /**
          * Constructor
@@ -49,7 +51,7 @@ namespace ocs2 {
          * @param [in] pinocchioGeometryInterface: Pinocchio geometry interface of the robot model.
          * @param [in] minimumDistance: The minimum allowed distance between collision pairs.
          */
-        SelfCollisionConstraint(const PinocchioStateInputMapping<scalar_t> &mapping,
+        SelfCollisionConstraint(const PinocchioStateInputMapping<scalar_t>& mapping,
                                 PinocchioGeometryInterface pinocchioGeometryInterface,
                                 scalar_t minimumDistance);
 
@@ -61,7 +63,7 @@ namespace ocs2 {
          *
          * @note Requires pinocchio::forwardKinematics().
          */
-        vector_t getValue(scalar_t time, const vector_t &state, const PreComputation &preComputation) const final;
+        vector_t getValue(scalar_t time, const vector_t& state, const PreComputation& preComputation) const final;
 
         /** Get the self collision distance approximation
          *
@@ -71,16 +73,16 @@ namespace ocs2 {
          * @note In the cases that PinocchioStateInputMapping requires some additional update calls on PinocchioInterface,
          * you should also call tham as well.
          */
-        VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t &state,
-                                                                 const PreComputation &preComputation) const final;
+        VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t& state,
+                                                                 const PreComputation& preComputation) const final;
 
     protected:
         /** Get the pinocchio interface updated with the requested computation. */
-        virtual const PinocchioInterface &getPinocchioInterface(const PreComputation &preComputation) const = 0;
+        virtual const PinocchioInterface& getPinocchioInterface(const PreComputation& preComputation) const = 0;
 
-        SelfCollisionConstraint(const SelfCollisionConstraint &rhs);
+        SelfCollisionConstraint(const SelfCollisionConstraint& rhs);
 
         SelfCollision selfCollision_;
-        std::unique_ptr<PinocchioStateInputMapping<scalar_t> > mappingPtr_;
+        std::unique_ptr<PinocchioStateInputMapping<scalar_t>> mappingPtr_;
     };
 } // namespace ocs2

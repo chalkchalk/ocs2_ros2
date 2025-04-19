@@ -7,7 +7,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(dependencies
         tf2_ros
-        kdl_parser
         robot_state_publisher
         ocs2_legged_robot
         ocs2_ros_interfaces
@@ -16,7 +15,6 @@ set(dependencies
 find_package(ament_cmake REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(ocs2_legged_robot REQUIRED)
-find_package(kdl_parser REQUIRED)
 find_package(robot_state_publisher REQUIRED)
 find_package(ocs2_ros_interfaces REQUIRED)
 

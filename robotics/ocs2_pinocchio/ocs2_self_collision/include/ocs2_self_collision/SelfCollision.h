@@ -32,8 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 #include <ocs2_self_collision/PinocchioGeometryInterface.h>
 
-namespace ocs2 {
-    class SelfCollision {
+namespace ocs2
+{
+    class SelfCollision
+    {
     public:
         using vector3_t = Eigen::Matrix<scalar_t, 3, 1>;
 
@@ -58,7 +60,7 @@ namespace ocs2 {
          * @param [in] pinocchioInterface: pinocchio interface of the robot model
          * @return: The differences between the distance of each collision pair and the minimum distance
          */
-        vector_t getValue(const PinocchioInterface &pinocchioInterface) const;
+        vector_t getValue(const PinocchioInterface& pinocchioInterface) const;
 
         /**
          * Evaluate the linear approximation of the distance function
@@ -70,7 +72,7 @@ namespace ocs2 {
          * @param [in] pinocchioGeometryInterface: pinocchio geometry interface of the robot model
          * @return: The pair of the distance violation and the first derivative of the distance against q
          */
-        std::pair<vector_t, matrix_t> getLinearApproximation(const PinocchioInterface &pinocchioInterface) const;
+        std::pair<vector_t, matrix_t> getLinearApproximation(const PinocchioInterface& pinocchioInterface) const;
 
     private:
         PinocchioGeometryInterface pinocchioGeometryInterface_;

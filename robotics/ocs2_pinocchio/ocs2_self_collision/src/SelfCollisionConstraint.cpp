@@ -30,37 +30,43 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 #include <ocs2_self_collision/SelfCollisionConstraint.h>
 
-namespace ocs2 {
-    SelfCollisionConstraint::SelfCollisionConstraint(const PinocchioStateInputMapping<scalar_t> &mapping,
+namespace ocs2
+{
+    SelfCollisionConstraint::SelfCollisionConstraint(const PinocchioStateInputMapping<scalar_t>& mapping,
                                                      PinocchioGeometryInterface pinocchioGeometryInterface,
                                                      scalar_t minimumDistance)
         : StateConstraint(ConstraintOrder::Linear),
           selfCollision_(std::move(pinocchioGeometryInterface), minimumDistance),
-          mappingPtr_(mapping.clone()) {
+          mappingPtr_(mapping.clone())
+    {
     }
 
 
-    SelfCollisionConstraint::SelfCollisionConstraint(const SelfCollisionConstraint &rhs)
-        : StateConstraint(rhs), selfCollision_(rhs.selfCollision_), mappingPtr_(rhs.mappingPtr_->clone()) {
+    SelfCollisionConstraint::SelfCollisionConstraint(const SelfCollisionConstraint& rhs)
+        : StateConstraint(rhs), selfCollision_(rhs.selfCollision_), mappingPtr_(rhs.mappingPtr_->clone())
+    {
     }
 
 
-    size_t SelfCollisionConstraint::getNumConstraints(scalar_t time) const {
+    size_t SelfCollisionConstraint::getNumConstraints(scalar_t time) const
+    {
         return selfCollision_.getNumCollisionPairs();
     }
 
 
-    vector_t SelfCollisionConstraint::getValue(scalar_t time, const vector_t &state,
-                                               const PreComputation &preComputation) const {
-        const auto &pinocchioInterface = getPinocchioInterface(preComputation);
+    vector_t SelfCollisionConstraint::getValue(scalar_t time, const vector_t& state,
+                                               const PreComputation& preComputation) const
+    {
+        const auto& pinocchioInterface = getPinocchioInterface(preComputation);
         return selfCollision_.getValue(pinocchioInterface);
     }
 
 
     VectorFunctionLinearApproximation SelfCollisionConstraint::getLinearApproximation(
-        scalar_t time, const vector_t &state,
-        const PreComputation &preComputation) const {
-        const auto &pinocchioInterface = getPinocchioInterface(preComputation);
+        scalar_t time, const vector_t& state,
+        const PreComputation& preComputation) const
+    {
+        const auto& pinocchioInterface = getPinocchioInterface(preComputation);
         mappingPtr_->setPinocchioInterface(pinocchioInterface);
 
         VectorFunctionLinearApproximation constraint;

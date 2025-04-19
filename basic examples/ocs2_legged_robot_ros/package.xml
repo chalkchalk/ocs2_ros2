@@ -14,7 +14,6 @@
   <build_depend>cmake_clang_tools</build_depend>
 
   <depend>tf2</depend>
-  <depend>kdl_parser</depend>
   <depend>robot_state_publisher</depend>
   <depend>ocs2_legged_robot</depend>
   <depend>ocs2_ros_interfaces</depend>

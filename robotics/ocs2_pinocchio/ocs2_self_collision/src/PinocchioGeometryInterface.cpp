@@ -71,8 +71,8 @@ namespace ocs2
         const std::string& urdf_path,
         const std::vector<std::pair<std::string, std::string>>&
         collisionLinkPairs,
-        const std::vector<std::pair<size_t, size_t>>&
-        collisionObjectPairs)
+        const std::vector<std::pair<size_t, size_t>>& collisionObjectPairs):
+        geometryModelPtr_(std::make_shared<pinocchio::GeometryModel>())
     {
         buildGeomFromUrdf(pinocchioInterface, urdf_path, *geometryModelPtr_);
         addCollisionObjectPairs(collisionObjectPairs);
@@ -129,7 +129,7 @@ namespace ocs2
         TiXmlPrinter printer;
         urdfAsXml->Accept(&printer);
         const std::stringstream urdfAsStringStream(printer.Str());
-        std::cout<<"urdf content: "<<urdfAsStringStream.str()<<std::endl;
+        // std::cout << "urdf content: " << urdfAsStringStream.str() << std::endl;
 #endif
 
         pinocchio::urdf::buildGeom(pinocchioInterface.getModel(), urdfAsStringStream,
@@ -149,7 +149,7 @@ namespace ocs2
 
         std::stringstream buffer;
         buffer << file.rdbuf();
-        std::cout<<"urdf content: "<<buffer.str()<<std::endl;
+        // std::cout << "urdf content: " << buffer.str() << std::endl;
 
         pinocchio::urdf::buildGeom(pinocchioInterface.getModel(), buffer,
                                    pinocchio::COLLISION, geomModel);

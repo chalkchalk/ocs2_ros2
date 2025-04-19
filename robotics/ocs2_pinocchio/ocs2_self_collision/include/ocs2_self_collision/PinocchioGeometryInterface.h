@@ -120,7 +120,7 @@ namespace ocs2
             const PinocchioInterface& pinocchioInterface,
             pinocchio::GeometryModel& geomModel);
 
-        void buildGeomFromUrdf(
+        static void buildGeomFromUrdf(
             const PinocchioInterface& pinocchioInterface,
             const std::string& urdf_path,
             pinocchio::GeometryModel& geomModel

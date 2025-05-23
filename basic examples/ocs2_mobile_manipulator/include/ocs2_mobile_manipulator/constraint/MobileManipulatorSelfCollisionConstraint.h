@@ -34,22 +34,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_mobile_manipulator/MobileManipulatorPreComputation.h>
 #include <ocs2_self_collision/SelfCollisionConstraint.h>
 
-namespace ocs2 {
-namespace mobile_manipulator {
+namespace ocs2::mobile_manipulator
+{
+    class MobileManipulatorSelfCollisionConstraint final : public SelfCollisionConstraint
+    {
+    public:
+        MobileManipulatorSelfCollisionConstraint(const PinocchioStateInputMapping<scalar_t>& mapping,
+                                                 PinocchioGeometryInterface pinocchioGeometryInterface,
+                                                 scalar_t minimumDistance)
+            : SelfCollisionConstraint(mapping, std::move(pinocchioGeometryInterface), minimumDistance)
+        {
+        }
 
-class MobileManipulatorSelfCollisionConstraint final : public SelfCollisionConstraint {
- public:
-  MobileManipulatorSelfCollisionConstraint(const PinocchioStateInputMapping<scalar_t>& mapping,
-                                           PinocchioGeometryInterface pinocchioGeometryInterface, scalar_t minimumDistance)
-      : SelfCollisionConstraint(mapping, std::move(pinocchioGeometryInterface), minimumDistance) {}
-  ~MobileManipulatorSelfCollisionConstraint() override = default;
-  MobileManipulatorSelfCollisionConstraint(const MobileManipulatorSelfCollisionConstraint& other) = default;
-  MobileManipulatorSelfCollisionConstraint* clone() const { return new MobileManipulatorSelfCollisionConstraint(*this); }
+        ~MobileManipulatorSelfCollisionConstraint() override = default;
+        MobileManipulatorSelfCollisionConstraint(const MobileManipulatorSelfCollisionConstraint& other) = default;
 
-  const PinocchioInterface& getPinocchioInterface(const PreComputation& preComputation) const override {
-    return cast<MobileManipulatorPreComputation>(preComputation).getPinocchioInterface();
-  }
-};
+        MobileManipulatorSelfCollisionConstraint* clone() const
+        {
+            return new MobileManipulatorSelfCollisionConstraint(*this);
+        }
 
-}  // namespace mobile_manipulator
-}  // namespace ocs2
+        const PinocchioInterface& getPinocchioInterface(const PreComputation& preComputation) const override
+        {
+            return cast<MobileManipulatorPreComputation>(preComputation).getPinocchioInterface();
+        }
+    };
+}

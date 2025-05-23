@@ -38,29 +38,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_mobile_manipulator/ManipulatorModelInfo.h>
 #include <ocs2_mobile_manipulator/MobileManipulatorPinocchioMapping.h>
 
-namespace ocs2 {
-namespace mobile_manipulator {
+namespace ocs2::mobile_manipulator
+{
+    /** Callback for caching and reference update */
+    class MobileManipulatorPreComputation : public PreComputation
+    {
+    public:
+        MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface, const ManipulatorModelInfo& info);
 
-/** Callback for caching and reference update */
-class MobileManipulatorPreComputation : public PreComputation {
- public:
-  MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface, const ManipulatorModelInfo& info);
+        ~MobileManipulatorPreComputation() override = default;
 
-  ~MobileManipulatorPreComputation() override = default;
+        MobileManipulatorPreComputation(const MobileManipulatorPreComputation& rhs) = delete;
+        MobileManipulatorPreComputation* clone() const override;
 
-  MobileManipulatorPreComputation(const MobileManipulatorPreComputation& rhs) = delete;
-  MobileManipulatorPreComputation* clone() const override;
+        void request(RequestSet request, scalar_t t, const vector_t& x, const vector_t& u) override;
+        void requestFinal(RequestSet request, scalar_t t, const vector_t& x) override;
 
-  void request(RequestSet request, scalar_t t, const vector_t& x, const vector_t& u) override;
-  void requestFinal(RequestSet request, scalar_t t, const vector_t& x) override;
+        PinocchioInterface& getPinocchioInterface() { return pinocchioInterface_; }
+        const PinocchioInterface& getPinocchioInterface() const { return pinocchioInterface_; }
 
-  PinocchioInterface& getPinocchioInterface() { return pinocchioInterface_; }
-  const PinocchioInterface& getPinocchioInterface() const { return pinocchioInterface_; }
-
- private:
-  PinocchioInterface pinocchioInterface_;
-  MobileManipulatorPinocchioMapping pinocchioMapping_;
-};
-
-}  // namespace mobile_manipulator
-}  // namespace ocs2
+    private:
+        PinocchioInterface pinocchioInterface_;
+        MobileManipulatorPinocchioMapping pinocchioMapping_;
+    };
+}

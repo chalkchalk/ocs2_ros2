@@ -1,3 +1,9 @@
+import os
+import sys
+
+import launch
+import launch_ros.actions
+from ament_index_python.packages import get_package_share_directory
 import launch
 import os
 from ament_index_python.packages import get_package_share_directory
@@ -20,13 +26,13 @@ def generate_launch_description():
     urdfFile = launch.actions.DeclareLaunchArgument(
         name='urdfFile',
         default_value=get_package_share_directory(
-            'ocs2_robotic_assets') + '/resources/mobile_manipulator/agileX_piper/urdf/piper_description.urdf'
+            'ocs2_robotic_assets') + '/resources/mobile_manipulator/franka/urdf/panda.urdf'
     )
 
     taskFile = launch.actions.DeclareLaunchArgument(
         name='taskFile',
         default_value=get_package_share_directory(
-            'ocs2_mobile_manipulator') + '/config/agileX_piper/task.info'
+            'ocs2_mobile_manipulator') + '/config/franka/task.info'
     )
 
     libFolder = launch.actions.DeclareLaunchArgument(
@@ -68,7 +74,7 @@ def generate_launch_description():
         }.items(),
         condition=IfCondition(LaunchConfiguration('visualize_only'))
     )
-    
+
 
     return LaunchDescription([
         rviz,

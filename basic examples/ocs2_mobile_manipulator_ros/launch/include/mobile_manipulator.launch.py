@@ -7,6 +7,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition, UnlessCondition
 from ament_index_python.packages import get_package_share_directory
 
+
 def is_wsl():
     try:
         with open('/proc/version', 'r') as f:
@@ -15,6 +16,7 @@ def is_wsl():
     except FileNotFoundError:
         return False
 
+
 def generate_launch_description():
     prefix = "gnome-terminal --"
     if is_wsl():
@@ -22,7 +24,7 @@ def generate_launch_description():
         print("Current system is WSL, use xterm as terminal")
     else:
         print("Current system is not WSL, use gnome-terminal as terminal")
-        
+
     return LaunchDescription([
         DeclareLaunchArgument(
             name='rviz',
@@ -54,7 +56,7 @@ def generate_launch_description():
             package='ocs2_mobile_manipulator_ros',
             executable='mobile_manipulator_mpc',
             name='mobile_manipulator_mpc',
-            prefix= prefix,
+            prefix=prefix,
             condition=IfCondition(LaunchConfiguration("debug")),
             output='screen',
             parameters=[
@@ -91,7 +93,7 @@ def generate_launch_description():
             package='ocs2_mobile_manipulator_ros',
             executable='mobile_manipulator_dummy_mrt_node',
             name='mobile_manipulator_dummy_mrt_node',
-            prefix= prefix,
+            prefix=prefix,
             output='screen',
             parameters=[
                 {

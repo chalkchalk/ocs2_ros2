@@ -1,26 +1,35 @@
 # OCS2 Mobile Manipulator
 
-## build
+## 1. Build
 
 ```bash
 cd ~/ros2_ws
 colcon build --packages-up-to ocs2_mobile_manipulator_ros --symlink-install
 ```
 
-## Visualize
-
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros visualize.launch.py test:=true
-```
-
-## Launch
+## 2. Launch
 ### AgileX Piper
-
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros agileX_piper.launch.py
-```
+* Visualize Test
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros agileX_piper.launch.py visualize_only:=true
+    ```
+* Launch with Sim
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros agileX_piper.launch.py
+    ```
+### Franka Panda
+* Visualize Test
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros franka.launch.py visualize_only:=true
+    ```
+* Launch with Sim
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros franka.launch.py
+    ```
 
 ### Mabi-Mobile
 
@@ -34,13 +43,6 @@ ros2 launch ocs2_mobile_manipulator_ros manipulator_mabi_mobile.launch.py
 ```bash
 source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n6.launch.py
-```
-
-### Franka Panda
-
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros manipulator_franka.launch.py
 ```
 
 ### Willow Garage PR2

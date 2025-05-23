@@ -33,34 +33,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ocs2_mobile_manipulator/ManipulatorModelInfo.h"
 
-namespace ocs2 {
-namespace mobile_manipulator {
+namespace ocs2::mobile_manipulator
+{
+    /**
+    * Provides read/write access to the base position.
+    */
+    template <typename SCALAR>
+    Eigen::Matrix<SCALAR, 3, 1> getBasePosition(const Eigen::Matrix<SCALAR, -1, 1>& state,
+                                                const ManipulatorModelInfo& info);
 
-/**
- * Provides read/write access to the base position.
- */
-template <typename SCALAR>
-Eigen::Matrix<SCALAR, 3, 1> getBasePosition(const Eigen::Matrix<SCALAR, -1, 1>& state, const ManipulatorModelInfo& info);
+    /**
+    * Provides read/write access to the base orientation.
+    */
+    template <typename SCALAR>
+    Eigen::Quaternion<SCALAR> getBaseOrientation(const Eigen::Matrix<SCALAR, -1, 1>& state,
+                                                 const ManipulatorModelInfo& info);
 
-/**
- * Provides read/write access to the base orientation.
- */
-template <typename SCALAR>
-Eigen::Quaternion<SCALAR> getBaseOrientation(const Eigen::Matrix<SCALAR, -1, 1>& state, const ManipulatorModelInfo& info);
+    /**
+    * Provides read/write access to the arm joint angles.
+    */
+    template <typename Derived>
+    Eigen::Block<Derived, -1, 1> getArmJointAngles(Eigen::MatrixBase<Derived>& state, const ManipulatorModelInfo& info);
 
-/**
- * Provides read/write access to the arm joint angles.
- */
-template <typename Derived>
-Eigen::Block<Derived, -1, 1> getArmJointAngles(Eigen::MatrixBase<Derived>& state, const ManipulatorModelInfo& info);
-
-/**
- * Provides read access to the arm joint angles.
- */
-template <typename Derived>
-const Eigen::Block<const Derived, -1, 1> getArmJointAngles(Eigen::MatrixBase<Derived>& state, const ManipulatorModelInfo& info);
-
-}  // namespace mobile_manipulator
-}  // namespace ocs2
+    /**
+    * Provides read access to the arm joint angles.
+    */
+    template <typename Derived>
+    const Eigen::Block<const Derived, -1, 1> getArmJointAngles(Eigen::MatrixBase<Derived>& state,
+                                                               const ManipulatorModelInfo& info);
+}
 
 #include "implementation/AccessHelperFunctionsImpl.h"

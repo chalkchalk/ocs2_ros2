@@ -38,60 +38,61 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace ocs2;
 using namespace mobile_manipulator;
 
-int main(int argc, char** argv) {
-  const std::string robotName = "mobile_manipulator";
+int main(int argc, char** argv)
+{
+    const std::string robotName = "mobile_manipulator";
 
-  // Initialize ros node
-  rclcpp::init(argc, argv);
-  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared(
-      robotName + "_mrt",
-      rclcpp::NodeOptions()
-          .allow_undeclared_parameters(true)
-          .automatically_declare_parameters_from_overrides(true));
-  // Get node parameters
-  std::string taskFile = node->get_parameter("taskFile").as_string();
-  std::string libFolder = node->get_parameter("libFolder").as_string();
-  std::string urdfFile = node->get_parameter("urdfFile").as_string();
-  std::cerr << "Loading task file: " << taskFile << std::endl;
-  std::cerr << "Loading library folder: " << libFolder << std::endl;
-  std::cerr << "Loading urdf file: " << urdfFile << std::endl;
-  // Robot Interface
-  mobile_manipulator::MobileManipulatorInterface interface(taskFile, libFolder,
-                                                           urdfFile);
+    // Initialize ros node
+    rclcpp::init(argc, argv);
+    rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared(
+        robotName + "_mrt",
+        rclcpp::NodeOptions()
+        .allow_undeclared_parameters(true)
+        .automatically_declare_parameters_from_overrides(true));
+    // Get node parameters
+    std::string taskFile = node->get_parameter("taskFile").as_string();
+    std::string libFolder = node->get_parameter("libFolder").as_string();
+    std::string urdfFile = node->get_parameter("urdfFile").as_string();
+    std::cerr << "Loading task file: " << taskFile << std::endl;
+    std::cerr << "Loading library folder: " << libFolder << std::endl;
+    std::cerr << "Loading urdf file: " << urdfFile << std::endl;
+    // Robot Interface
+    mobile_manipulator::MobileManipulatorInterface interface(taskFile, libFolder,
+                                                             urdfFile);
 
-  // MRT
-  MRT_ROS_Interface mrt(robotName);
-  mrt.initRollout(&interface.getRollout());
-  mrt.launchNodes(node);
+    // MRT
+    MRT_ROS_Interface mrt(robotName);
+    mrt.initRollout(&interface.getRollout());
+    mrt.launchNodes(node);
 
-  // Visualization
-  auto dummyVisualization =
-      std::make_shared<mobile_manipulator::MobileManipulatorDummyVisualization>(
-          node, interface);
+    // Visualization
+    auto dummyVisualization =
+        std::make_shared<mobile_manipulator::MobileManipulatorDummyVisualization>(
+            node, interface);
 
-  // Dummy MRT
-  MRT_ROS_Dummy_Loop dummy(mrt, interface.mpcSettings().mrtDesiredFrequency_,
-                           interface.mpcSettings().mpcDesiredFrequency_);
-  dummy.subscribeObservers({dummyVisualization});
+    // Dummy MRT
+    MRT_ROS_Dummy_Loop dummy(mrt, interface.mpcSettings().mrtDesiredFrequency_,
+                             interface.mpcSettings().mpcDesiredFrequency_);
+    dummy.subscribeObservers({dummyVisualization});
 
-  // initial state
-  SystemObservation initObservation;
-  initObservation.state = interface.getInitialState();
-  initObservation.input.setZero(interface.getManipulatorModelInfo().inputDim);
-  initObservation.time = 0.0;
+    // initial state
+    SystemObservation initObservation;
+    initObservation.state = interface.getInitialState();
+    initObservation.input.setZero(interface.getManipulatorModelInfo().inputDim);
+    initObservation.time = 0.0;
 
-  // initial command
-  vector_t initTarget(7);
-  initTarget.head(3) << 1, 0, 1;
-  initTarget.tail(4) << Eigen::Quaternion<scalar_t>(1, 0, 0, 0).coeffs();
-  const vector_t zeroInput =
-      vector_t::Zero(interface.getManipulatorModelInfo().inputDim);
-  const TargetTrajectories initTargetTrajectories({initObservation.time},
-                                                  {initTarget}, {zeroInput});
+    // initial command
+    vector_t initTarget(7);
+    initTarget.head(3) << 1, 0, 1;
+    initTarget.tail(4) << Eigen::Quaternion<scalar_t>(1, 0, 0, 0).coeffs();
+    const vector_t zeroInput =
+        vector_t::Zero(interface.getManipulatorModelInfo().inputDim);
+    const TargetTrajectories initTargetTrajectories({initObservation.time},
+                                                    {initTarget}, {zeroInput});
 
-  // Run dummy (loops while ros is ok)
-  dummy.run(initObservation, initTargetTrajectories);
+    // Run dummy (loops while ros is ok)
+    dummy.run(initObservation, initTargetTrajectories);
 
-  // Successful exit
-  return 0;
+    // Successful exit
+    return 0;
 }

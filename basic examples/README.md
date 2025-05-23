@@ -77,7 +77,7 @@ ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n6.launch.py
 * run Franka Panda
 ```bash
 source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros manipulator_franka.launch.py
+ros2 launch ocs2_mobile_manipulator_ros franka.launch.py
 ```
 * run Willow Garage PR2
 ```bash

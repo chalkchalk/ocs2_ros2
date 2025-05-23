@@ -76,28 +76,6 @@ target_compile_options(legged_robot_gait_command PRIVATE ${OCS2_CXX_FLAGS})
 find_package(ament_lint_auto REQUIRED)
 ament_lint_auto_find_test_dependencies()
 
-#########################
-###   CLANG TOOLING   ###
-#########################
-find_package(cmake_clang_tools QUIET)
-if(cmake_clang_tools_FOUND)
-    message(STATUS "Run clang tooling for target ocs2_legged_robot_ros")
-    add_clang_tooling(
-            TARGETS
-            ${PROJECT_NAME}
-            legged_robot_ddp_mpc
-            legged_robot_sqp_mpc
-            legged_robot_ipm_mpc
-            legged_robot_dummy
-            legged_robot_target
-            legged_robot_gait_command
-            SOURCE_DIRS src include
-            CT_HEADER_DIRS include
-            CF_WERROR
-    )
-endif(cmake_clang_tools_FOUND)
-
-
 #############
 ## Install ##
 #############

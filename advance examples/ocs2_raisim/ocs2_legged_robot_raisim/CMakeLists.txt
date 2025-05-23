@@ -44,21 +44,6 @@ ament_target_dependencies(legged_robot_raisim_dummy ${dependencies})
 target_link_libraries(legged_robot_raisim_dummy ${PROJECT_NAME})
 target_compile_options(legged_robot_raisim_dummy PRIVATE ${OCS2_CXX_FLAGS})
 
-#########################
-###   CLANG TOOLING   ###
-#########################
-find_package(cmake_clang_tools QUIET)
-if (cmake_clang_tools_FOUND)
-    message(STATUS "Run clang tooling for target ocs2_ballbot")
-    add_clang_tooling(
-            TARGETS ${PROJECT_NAME} legged_robot_raisim_dummy
-            SOURCE_DIRS src include
-            CT_HEADER_DIRS include
-            CT_HEADER_EXCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/generated
-            CF_WERROR
-    )
-endif (cmake_clang_tools_FOUND)
-
 #############
 ## Install ##
 #############

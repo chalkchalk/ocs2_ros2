@@ -53,20 +53,6 @@ pybind11_add_module(MpcnetPybindings SHARED src/MpcnetPybindings.cpp)
 add_dependencies(MpcnetPybindings ${PROJECT_NAME})
 target_link_libraries(MpcnetPybindings PRIVATE ${PROJECT_NAME})
 
-#########################
-###   CLANG TOOLING   ###
-#########################
-find_package(cmake_clang_tools QUIET)
-if (cmake_clang_tools_FOUND)
-    message(STATUS "Run clang tooling for target ocs2_mpcnet_core")
-    add_clang_tooling(
-            TARGETS ${PROJECT_NAME}
-            SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include
-            CT_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-            CF_WERROR
-    )
-endif (cmake_clang_tools_FOUND)
-
 #############
 ## Install ##
 #############

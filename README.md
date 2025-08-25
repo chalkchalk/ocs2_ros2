@@ -115,6 +115,8 @@ source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_cartpole_ros cartpole.launch.py
 ```
 
+https://github.com/user-attachments/assets/7fe0fe18-3ad5-47dd-9fe2-be90413c2f2f
+
 </details>
 
 ### 3.3 [Ballbot](https://leggedrobotics.github.io/ocs2/robotic_examples.html#ballbot)
@@ -132,6 +134,8 @@ colcon build --packages-up-to ocs2_ballbot_ros --symlink-install
 source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
 ```
+
+https://github.com/user-attachments/assets/c87966b8-525f-4592-a54f-cfaed458a6f2
 
 </details>
 
@@ -151,6 +155,8 @@ source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_quadrotor_ros quadrotor.launch.py
 ```
 
+https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
+
 </details>
 
 ### 3.5 [Mobile Manipulator](https://leggedrobotics.github.io/ocs2/robotic_examples.html#mobile-manipulator)
@@ -169,6 +175,8 @@ source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros manipulator_mabi_mobile.launch.py
 ```
 
+https://github.com/user-attachments/assets/c71f6123-fa3a-4b72-a60f-5509b8c25413
+
 * run Kinova Jaco2
 ```bash
 source ~/ros2_ws/install/setup.bash
@@ -180,11 +188,15 @@ source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros franka.launch.py
 ```
 
+https://github.com/user-attachments/assets/bab14b46-486e-46dc-a268-bd63616d1010
+
 * run Willow Garage PR2
 ```bash
 source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros pr2.launch.py
 ```
+
+https://github.com/user-attachments/assets/100aae62-9e80-487b-89cf-ea6a97ef2505
 
 * run Clearpath Ridgeback with UR-5
 ```bash

@@ -1,4 +1,5 @@
 import os
+import re
 from launch.substitutions import LaunchConfiguration
 from launch import LaunchDescription
 from launch_ros.actions import Node
@@ -35,12 +36,26 @@ def generate_launch_description():
             default_value=''
         ),
         DeclareLaunchArgument(
-            name='urdfFile',
+            name='taskFile',
             default_value=''
         ),
         DeclareLaunchArgument(
             name='libFolder',
             default_value=''
+        ),
+        DeclareLaunchArgument(
+            name='debug',
+            default_value='false'
+        ),
+        DeclareLaunchArgument(
+            name='enableJoystick',
+            default_value='false',
+            description='Whether to enable joystick control'
+        ),
+        DeclareLaunchArgument(
+            name='enableAutoPosition',
+            default_value='false',
+            description='Whether to enable automatic marker position updates'
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -112,6 +127,17 @@ def generate_launch_description():
             executable='mobile_manipulator_target',
             name='mobile_manipulator_target',
             condition=IfCondition(LaunchConfiguration("rviz")),
+            parameters=[
+                {
+                    'taskFile': LaunchConfiguration('taskFile')
+                },
+                {
+                    'enableJoystick': LaunchConfiguration('enableJoystick')
+                },
+                {
+                    'enableAutoPosition': LaunchConfiguration('enableAutoPosition')
+                },
+            ],
             output='screen',
         )
     ])

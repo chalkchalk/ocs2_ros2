@@ -94,6 +94,8 @@ namespace ocs2::mobile_manipulator
         const auto urdfTree = ::urdf::parseURDFFile(robotUrdfPath);
         // remove extraneous joints from urdf
         ::urdf::ModelInterfaceSharedPtr newModel = std::make_shared<::urdf::ModelInterface>(*urdfTree);
+        
+        // First pass: mark specified joints as fixed
         for (joint_pair_t& jointPair : newModel->joints_)
         {
             if (std::find(jointNames.begin(), jointNames.end(), jointPair.first) != jointNames.end())
@@ -101,6 +103,30 @@ namespace ocs2::mobile_manipulator
                 jointPair.second->type = urdf::Joint::FIXED;
             }
         }
+        
+        // Second pass: automatically detect and remove mimic joints
+        std::vector<std::string> mimicJointNames;
+        for (const joint_pair_t& jointPair : newModel->joints_)
+        {
+            // Check if this joint has a mimic property
+            if (jointPair.second->mimic)
+            {
+                mimicJointNames.push_back(jointPair.first);
+                std::cerr << " #### Auto-detected mimic joint: \"" << jointPair.first << "\" -> \"" 
+                          << jointPair.second->mimic->joint_name << "\"" << std::endl;
+            }
+        }
+        
+        // Mark all mimic joints as fixed
+        for (joint_pair_t& jointPair : newModel->joints_)
+        {
+            if (std::find(mimicJointNames.begin(), mimicJointNames.end(), jointPair.first) != mimicJointNames.end())
+            {
+                jointPair.second->type = urdf::Joint::FIXED;
+                std::cerr << " #### Auto-removed mimic joint: \"" << jointPair.first << "\"" << std::endl;
+            }
+        }
+        
         // resolve for the robot type
         switch (type)
         {
@@ -145,7 +171,9 @@ namespace ocs2::mobile_manipulator
 
     ManipulatorModelInfo createManipulatorModelInfo(const PinocchioInterface& interface,
                                                     const ManipulatorModelType& type,
-                                                    const std::string& baseFrame, const std::string& eeFrame)
+                                                    const std::string& baseFrame,
+                                                    const std::string& eeFrame,
+                                                    const std::string& eeFrame1)
     {
         const auto& model = interface.getModel();
 
@@ -189,10 +217,11 @@ namespace ocs2::mobile_manipulator
         }
         // store frame names for using later.
         info.eeFrame = eeFrame;
+        info.eeFrame1 = eeFrame1;
         info.baseFrame = baseFrame;
         // get name of arm joints.
         const auto& jointNames = model.names;
-        info.dofNames = std::vector<std::string>(jointNames.end() - info.armDim, jointNames.end());
+        info.dofNames = std::vector(jointNames.end() - info.armDim, jointNames.end());
 
         return info;
     }

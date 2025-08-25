@@ -2,29 +2,26 @@
 
 ## 1. Summary
 
-OCS2_ROS2 is developed based on [OCS2](https://github.com/leggedrobotics/ocs2), it was refactored to be compatible with
-ROS2 and modern cmake. Below is the current todolist of the project:
+OCS2_ROS2 is developed based on [OCS2](https://github.com/leggedrobotics/ocs2), it was refactored to be compatible with ROS2 and modern cmake.
 
-- [x] modern cmake
-- [x] basic 6 examples in official documents
-- [x] WSL2 support
-- [x] Fix Quadrotor example's unexpected behavior
-- [x] Fix Mobile Manipolator's interactive marker
-- [x] perceptive locomotion demo
-- [x] tinyxml2 problem in Ubuntu 24.04 ROS2 Jazzy
-- [x] raisim demo
-- [x] mpc_net demo
-- [x] **[2025-01-16]** Pinnochio 3 support, removed hpp-fcl dependency
-- [x] **[2025-03-20]** Add forked Gridmap SDF
+### What's New (2025.08)
+
+**Pinocchio 3 Dependency Optimization**
+- Upgraded to Pinocchio 3 version for better performance and stability
+- Support for installing Pinocchio from ROS sources, avoiding complex third-party package management
+
+**Dual-Arm Mobile Manipulator Support**
+- Added Dual-Arm Mobile Manipulator functionality
+- Enhanced interactive markers for better user operation experience
 
 The IDE I used is CLion, you can follow the [guide](https://www.jetbrains.com/help/clion/ros2-tutorial.html) to set up
 the IDE.
 
-Below is my tested platform:
+### Tested Platform
 
 * Intel Nuc X15 (i7-11800H):
-    * Ubuntu 22.04 ROS2 Humble (WSL2)
-    * Ubuntu 24.04 ROS2 Jazzy
+    * Ubuntu 22.04 ROS2 Humble  (WSL2 included)
+    * Ubuntu 24.04 ROS2 Jazzy   (WSL2 included)
 * Lenovo P16v (i7-13800H):
     * Ubuntu 24.04 ROS2 Jazzy
 * Jetson Orin Nano
@@ -47,9 +44,11 @@ Tested system and ROS2 version:
 * C++ compiler with C++17 support
 * Eigen (v3.4)
 * Boost C++ (v1.74)
-* [Pinocchio](https://stack-of-tasks.github.io/pinocchio/download.html)
 
-> **Warm Reminder**: Please follow the guide in the link to install Pinocchio before building the project
+> **Note:** Latest version used pinocchio from ros source to simplified install steps. If you install pinocchio from robot-pkgs, you can uninstall it by
+> ```bash
+> sudo apt remove robotpkg-*
+> ```
 
 ### 2.3 Clone Repositories
 
@@ -76,39 +75,165 @@ cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 ```
 
-### 2.4 [Basic Examples](basic%20examples/)
+## 3. Basic Examples
 
-Quick start guide:
+This section contains basic examples for the OCS2 library.
 
-* Compile legged robot example
-    ```bash
-    cd ~/ros2_ws
-    colcon build --packages-up-to ocs2_legged_robot_ros --symlink-install
-    ```
-* Run the legged robot example
-    ```bash
-    source ~/ros2_ws/install/setup.bash
-    ros2 launch ocs2_legged_robot_ros legged_robot_ddp.launch.py
-    ```
+### 3.1 [Double Integrator](https://leggedrobotics.github.io/ocs2/robotic_examples.html#double-integrator)
 
-![legged_robot](.images/legged_demo.png)
+<details>
+<summary>🎯 Click to expand Double Integrator example</summary>
 
-[![](http://i0.hdslb.com/bfs/archive/1bf12ba98ed8e7fe01594bb2a713ddafdd580488.jpg)](https://www.bilibili.com/video/BV12vv9eGEns/)
+* build
+```bash
+cd ~/ros2_ws
+colcon build --packages-up-to ocs2_double_integrator_ros --symlink-install
+```
+* run
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_double_integrator_ros double_integrator.launch.py
+```
 
-## 3. Advanced Examples
+https://github.com/user-attachments/assets/581d03ff-43e4-49c9-8f47-a0ce491b585c
+
+</details>
+
+### 3.2 [Cartpole](https://leggedrobotics.github.io/ocs2/robotic_examples.html#cartpole)
+
+<details>
+<summary>🛒 Click to expand Cartpole example</summary>
+
+* build
+```bash
+cd ~/ros2_ws
+colcon build --packages-up-to ocs2_cartpole_ros --symlink-install
+```
+* run
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_cartpole_ros cartpole.launch.py
+```
+
+</details>
+
+### 3.3 [Ballbot](https://leggedrobotics.github.io/ocs2/robotic_examples.html#ballbot)
+
+<details>
+<summary>🏀 Click to expand Ballbot example</summary>
+
+* build
+```bash
+cd ~/ros2_ws
+colcon build --packages-up-to ocs2_ballbot_ros --symlink-install
+```
+* run
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
+```
+
+</details>
+
+### 3.4 [Quadrotor](https://leggedrobotics.github.io/ocs2/robotic_examples.html#quadrotor)
+
+<details>
+<summary>🚁 Click to expand Quadrotor example</summary>
+
+* build
+```bash
+cd ~/ros2_ws
+colcon build --packages-up-to ocs2_quadrotor_ros --symlink-install
+```
+* run
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_quadrotor_ros quadrotor.launch.py
+```
+
+</details>
+
+### 3.5 [Mobile Manipulator](https://leggedrobotics.github.io/ocs2/robotic_examples.html#mobile-manipulator)
+
+<details>
+<summary>🦾 Click to expand Mobile Manipulator example</summary>
+
+* build
+```bash
+cd ~/ros2_ws
+colcon build --packages-up-to ocs2_mobile_manipulator_ros --symlink-install
+```
+* run Mabi-Mobile
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_mobile_manipulator_ros manipulator_mabi_mobile.launch.py
+```
+
+* run Kinova Jaco2
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n6.launch.py
+```
+* run Franka Panda
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_mobile_manipulator_ros franka.launch.py
+```
+
+* run Willow Garage PR2
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_mobile_manipulator_ros pr2.launch.py
+```
+
+* run Clearpath Ridgeback with UR-5
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5.launch.py 
+```
+
+</details>
+
+### 3.6 [Legged Robot](https://leggedrobotics.github.io/ocs2/robotic_examples.html#legged-robot)
+
+<details>
+<summary>🐕 Click to expand Legged Robot example</summary>
+
+* build
+```bash
+cd ~/ros2_ws
+colcon build --packages-up-to ocs2_legged_robot_ros --symlink-install
+```
+* run
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ocs2_legged_robot_ros legged_robot_ddp.launch.py
+```
+
+https://github.com/user-attachments/assets/d29551b7-2ac7-428d-9605-f782193bcaf2
+
+</details>
+
+## 4. Advanced Examples
 
 [![](http://i1.hdslb.com/bfs/archive/a53bab50141165eb452aa0763a9a5b9a51a7ca67.jpg)](https://www.bilibili.com/video/BV1gSHLe3EEv/)
 
-### 3.1 [Perceptive Locomotion](advance%20examples/ocs2_perceptive_anymal/)
+### 4.1 [Perceptive Locomotion](advance%20examples/ocs2_perceptive_anymal/)
 
 ![perceptive_side](.images/perception_side.png)
 
 ![perceptive_hurdles](.images/perception_hurdles.png)
 
-### 3.2 [RaiSim Simulation](advance%20examples/ocs2_raisim/)
+### 4.2 [RaiSim Simulation](advance%20examples/ocs2_raisim/)
 
 ![raisim](.images/raisim.png)
 
 ![raisim_rviz](.images/raisim_rviz.png)
 
-### 3.3 [MPC-Net](advance%20examples/ocs2_mpcnet/)
+### 4.3 [MPC-Net](advance%20examples/ocs2_mpcnet/)
+
+## 5. Related Projects
+
+* [quadruped ros2 control](https://github.com/legubiao/quadruped_ros2_control)： Quadruped controller based on OCS2 ROS2
+* [arms ro2 control](https://github.com/fiveages-sim/arms_ros2_control): Mobile manipulator controller based on OCS2 ROS2
+* [robot_descriptions](https://github.com/fiveages-sim/robot_descriptions): More robot configs for OCS2 ROS2

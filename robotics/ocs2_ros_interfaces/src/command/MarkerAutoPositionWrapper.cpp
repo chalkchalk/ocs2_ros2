@@ -16,8 +16,7 @@ namespace ocs2
         const UpdateMode updateMode,
         const bool dualArmMode,
         const double cooldownDuration,
-        const double maxUpdateFrequency
-    )
+        const double maxUpdateFrequency)
         : node_(std::move(node)),
           markerControl_(markerControl),
           topicPrefix_(std::move(topicPrefix)),

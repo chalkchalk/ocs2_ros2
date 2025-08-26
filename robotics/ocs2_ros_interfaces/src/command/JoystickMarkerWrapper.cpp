@@ -11,12 +11,14 @@ namespace ocs2
         IMarkerControl* markerControl,
         const double linearScale,
         const double angularScale,
-        const double updateRate)
+        const double updateRate,
+        const JoystickMapping& mapping)
         : node_(std::move(node)),
           markerControl_(markerControl),
           linearScale_(linearScale),
           angularScale_(angularScale),
           updateRate_(updateRate),
+          mapping_(mapping),
           enabled_(false),
           lastUpdateTime_(node_->now()),
           lastButtonTime_(node_->now()),
@@ -25,11 +27,17 @@ namespace ocs2
           currentPosition_(0.0, 0.0, 1.0),
           currentOrientation_(1.0, 0.0, 0.0, 0.0)
     {
-        // Initialize button states
-        for (bool& lastButtonState : lastButtonStates_)
-        {
-            lastButtonState = false;
-        }
+        // Initialize button states using mapping configuration
+        lastButtonStates_[mapping_.a_button] = false;
+        lastButtonStates_[mapping_.b_button] = false;
+        lastButtonStates_[mapping_.x_button] = false;
+        lastButtonStates_[mapping_.y_button] = false;
+        lastButtonStates_[mapping_.lb_button] = false;
+        lastButtonStates_[mapping_.rb_button] = false;
+        lastButtonStates_[mapping_.back_button] = false;
+        lastButtonStates_[mapping_.start_button] = false;
+        lastButtonStates_[mapping_.left_stick_press] = false;
+        lastButtonStates_[mapping_.right_stick_press] = false;
 
         // Create joystick subscriber
         auto joystickCallback = [this](const sensor_msgs::msg::Joy::SharedPtr msg)
@@ -40,9 +48,9 @@ namespace ocs2
             "joy", 10, joystickCallback);
 
         RCLCPP_INFO(node_->get_logger(), "🎮 JoystickMarkerWrapper created");
-        RCLCPP_INFO(node_->get_logger(), "🎮 Joystick control is DISABLED by default. Press Y button to enable.");
+        RCLCPP_INFO(node_->get_logger(), "🎮 Joystick control is DISABLED by default. Press right stick to enable.");
         RCLCPP_INFO(node_->get_logger(),
-                    "🎮 Controls: Y=toggle joystick, X=toggle continuous mode, A=send position, B=switch active arm (dual arm mode)")
+                    "🎮 Controls: Right stick=toggle joystick, Left stick=toggle continuous mode, A=switch active arm, B=send position, X/Y=sync position")
         ;
     }
 
@@ -83,172 +91,163 @@ namespace ocs2
 
     void JoystickMarkerWrapper::processButtons(const sensor_msgs::msg::Joy::SharedPtr msg)
     {
-        if (msg->buttons.size() <= 5)
+        if (msg->buttons.size() <= 10)
         {
             return;
         }
 
-        auto currentTime = node_->now();
-        double timeSinceLastButton = (currentTime - lastButtonTime_).seconds();
-        bool cooldownActive = timeSinceLastButton < buttonCooldownDuration_;
+        // Check button states using mapping configuration
+        bool yPressed = msg->buttons[mapping_.y_button];
+        bool xPressed = msg->buttons[mapping_.x_button];
+        bool aPressed = msg->buttons[mapping_.a_button];
+        bool bPressed = msg->buttons[mapping_.b_button];
+        bool leftStickPressed = msg->buttons[mapping_.left_stick_press];
+        bool rightStickPressed = msg->buttons[mapping_.right_stick_press];
 
-        // Check button states
-        bool yPressed = msg->buttons[3]; // Y button
-        bool xPressed = msg->buttons[2]; // X button
-        bool aPressed = msg->buttons[0]; // A button
-        bool bPressed = msg->buttons[1]; // B button
-
-        // Detect button press events (rising edge)
-        bool yJustPressed = yPressed && !lastButtonStates_[3];
-        bool xJustPressed = xPressed && !lastButtonStates_[2];
-        bool aJustPressed = aPressed && !lastButtonStates_[0];
-        bool bJustPressed = bPressed && !lastButtonStates_[1];
+        // Detect button press events (rising edge) - only for essential controls
+        bool rightStickJustPressed = rightStickPressed && !lastButtonStates_[mapping_.right_stick_press];
+        bool leftStickJustPressed = leftStickPressed && !lastButtonStates_[mapping_.left_stick_press];
 
         // Update last button states
-        lastButtonStates_[0] = aPressed;
-        lastButtonStates_[1] = bPressed;
-        lastButtonStates_[2] = xPressed;
-        lastButtonStates_[3] = yPressed;
+        lastButtonStates_[mapping_.a_button] = aPressed;
+        lastButtonStates_[mapping_.b_button] = bPressed;
+        lastButtonStates_[mapping_.x_button] = xPressed;
+        lastButtonStates_[mapping_.y_button] = yPressed;
+        lastButtonStates_[mapping_.left_stick_press] = leftStickPressed;
+        lastButtonStates_[mapping_.right_stick_press] = rightStickPressed;
 
-        // Process button events
-        if ((yJustPressed || xJustPressed || aJustPressed || bJustPressed) && !anyButtonPressed_)
+        // Process essential button events (rising edge detection)
+        if (rightStickJustPressed)
         {
-            if (!cooldownActive)
+            // Right stick press: toggle joystick control
+            if (enabled_.load())
             {
-                lastButtonTime_ = currentTime;
+                disable();
+            }
+            else
+            {
+                enable();
+                // Automatically sync current pose with marker position
+                syncCurrentPoseWithMarker();
+                
+                // Immediately update marker pose to ensure continuous mode uses the new position
+                updateMarkerPose(currentPosition_, currentOrientation_);
+                
+                RCLCPP_INFO(node_->get_logger(), "🎮 Joystick control enabled - synced with current marker position");
+            }
+        }
 
-                // Y button: toggle joystick control
-                if (yJustPressed)
+        if (leftStickJustPressed && enabled_.load())
+        {
+            // Left stick press: toggle continuous mode
+            markerControl_->togglePublishMode();
+        }
+
+        // Process regular button events (when enabled)
+        if (enabled_.load())
+        {
+             // X and Y buttons: sync current pose with marker
+             if (xPressed || yPressed || aPressed || bPressed)
+             {
+                 syncCurrentPoseWithMarker();
+             }
+             
+            // A button: switch active arm (dual arm mode only)
+            if (aPressed && markerControl_->getMode() == IMarkerControl::Mode::DUAL_ARM)
+            {
+                auto currentArm = markerControl_->getActiveArm();
+                auto newArm = currentArm == IMarkerControl::ArmType::LEFT
+                                  ? IMarkerControl::ArmType::RIGHT
+                                  : IMarkerControl::ArmType::LEFT;
+                markerControl_->setActiveArm(newArm);
+
+                // Immediately update marker pose to ensure continuous mode uses the new position
+                updateMarkerPose(currentPosition_, currentOrientation_);
+
+                RCLCPP_INFO(node_->get_logger(), "🎮 Switched active arm to: %s",
+                            (newArm == IMarkerControl::ArmType::LEFT) ? "LEFT" : "RIGHT");
+            }
+
+            // B button: send trajectory
+            if (bPressed && !markerControl_->isContinuousMode())
+            {
+                
+                if (markerControl_->getMode() == IMarkerControl::Mode::SINGLE_ARM)
                 {
-                    if (enabled_.load())
-                    {
-                        disable();
-                    }
-                    else
-                    {
-                        enable();
-                        // Initialize joystick position to current marker position
-                        if (markerControl_->getMode() == IMarkerControl::Mode::SINGLE_ARM)
-                        {
-                            auto [pos, orient] = markerControl_->getSingleArmPose();
-                            currentPosition_ = pos;
-                            currentOrientation_ = orient;
-                        }
-                        else
-                        {
-                            auto [pos, orient] = markerControl_->getDualArmPose(markerControl_->getActiveArm());
-                            currentPosition_ = pos;
-                            currentOrientation_ = orient;
-                        }
-                    }
+                    markerControl_->sendSingleArmTrajectories();
+                    RCLCPP_INFO(node_->get_logger(), "🎮 Sending single arm position via B button.");
                 }
-
-                // X button: toggle continuous mode
-                if (xJustPressed && enabled_.load())
+                else
                 {
-                    markerControl_->togglePublishMode();
-                }
-
-                // A button: send trajectory
-                if (aJustPressed && enabled_.load() && !markerControl_->isContinuousMode())
-                {
-                    if (markerControl_->getMode() == IMarkerControl::Mode::SINGLE_ARM)
-                    {
-                        markerControl_->sendSingleArmTrajectories();
-                        RCLCPP_INFO(node_->get_logger(), "🎮 Sending single arm position via A button.");
-                    }
-                    else
-                    {
-                        markerControl_->sendDualArmTrajectories();
-                        RCLCPP_INFO(node_->get_logger(), "🎮 Sending dual arm positions via A button.");
-                    }
-                }
-
-                // B button: switch active arm (dual arm mode only)
-                if (bJustPressed && enabled_.load() && markerControl_->getMode() == IMarkerControl::Mode::DUAL_ARM)
-                {
-                    auto currentArm = markerControl_->getActiveArm();
-                    auto newArm = currentArm == IMarkerControl::ArmType::LEFT
-                                      ? IMarkerControl::ArmType::RIGHT
-                                      : IMarkerControl::ArmType::LEFT;
-                    markerControl_->setActiveArm(newArm);
-
-                    // Update joystick position to newly active arm position
-                    auto [pos, orient] = markerControl_->getDualArmPose(newArm);
-                    currentPosition_ = pos;
-                    currentOrientation_ = orient;
-
-                    RCLCPP_INFO(node_->get_logger(), "🎮 Switched active arm to: %s",
-                                (newArm == IMarkerControl::ArmType::LEFT) ? "LEFT" : "RIGHT");
+                    markerControl_->sendDualArmTrajectories();
+                    RCLCPP_INFO(node_->get_logger(), "🎮 Sending dual arm positions via B button.");
                 }
             }
         }
 
         // Update button state tracking
-        anyButtonPressed_ = yPressed || xPressed || aPressed || bPressed;
+        anyButtonPressed_ = yPressed || xPressed || aPressed || bPressed || leftStickPressed || rightStickPressed;
     }
 
     void JoystickMarkerWrapper::processAxes(const sensor_msgs::msg::Joy::SharedPtr msg)
     {
-        if (msg->axes.size() <= 5)
+        if (msg->axes.size() <= 7)
         {
             return;
         }
 
         bool hasValidInput = false;
 
-        // Right stick controls position (axes[3], axes[4], axes[5])
-        // axes[4]: up/down movement (Z-axis) - RIGHT_STICK_Y
-        // axes[3]: left/right movement (Y-axis) - RIGHT_STICK_X
-        // axes[5]: forward/backward movement (X-axis) - using triggers
+        // Left stick controls horizontal movement in x-y plane
+        double left_stick_x = applyDeadzone(msg->axes[mapping_.left_stick_x]);
+        double left_stick_y = applyDeadzone(msg->axes[mapping_.left_stick_y]);
 
-        // Triggers control forward/backward movement (X-axis)
-        double lin_x_right = -0.5 * (msg->axes[5] - 1.0); // RIGHT_TRIGGER
-        double lin_x_left = 0.5 * (msg->axes[2] - 1.0); // LEFT_TRIGGER
-        double x_movement = (lin_x_right + lin_x_left) * linearScale_;
+        // Right stick controls rotation (yaw) and vertical movement (z-axis)
+        double right_stick_x = applyDeadzone(msg->axes[mapping_.right_stick_x]);
+        double right_stick_y = applyDeadzone(msg->axes[mapping_.right_stick_y]);
 
-        if (std::abs(msg->axes[4]) > 0.1 || std::abs(msg->axes[3]) > 0.1 ||
-            std::abs(lin_x_right) > 0.1 || std::abs(lin_x_left) > 0.1)
+        // D-pad controls roll and pitch rotation
+        double dpad_x = 0.0;
+        double dpad_y = 0.0;
+        if (msg->axes.size() > mapping_.dpad_x && msg->axes.size() > mapping_.dpad_y)
+        {
+            dpad_x = applyDeadzone(msg->axes[mapping_.dpad_x], 0.5);
+            dpad_y = applyDeadzone(msg->axes[mapping_.dpad_y], 0.5);
+        }
+
+        // Check if there's valid position input
+        if (std::abs(left_stick_x) > 0.001 || std::abs(left_stick_y) > 0.001 ||
+            std::abs(right_stick_y) > 0.001)
         {
             hasValidInput = true;
             // Update position
-            currentPosition_.x() += x_movement;
-            currentPosition_.y() += msg->axes[3] * linearScale_; // Right stick X-axis
-            currentPosition_.z() += msg->axes[4] * linearScale_; // Right stick Y-axis
+            currentPosition_.y() += left_stick_x * linearScale_;   // Left stick X: left/right
+            currentPosition_.z() += right_stick_y * linearScale_;  // Right stick Y: up/down
+            currentPosition_.x() += left_stick_y * linearScale_;   // Left stick Y: forward/backward
         }
 
-        // Left stick controls orientation (axes[0], axes[1])
-        // axes[1]: rotation around Y-axis (pitch) - LEFT_STICK_Y
-        // axes[0]: rotation around X-axis (roll) - LEFT_STICK_X
+        // Check if there's valid rotation input
         double pitch = 0.0;
         double roll = 0.0;
         double yaw = 0.0;
 
-        if (msg->axes.size() > 1)
+        // Right stick X controls yaw (left/right rotation)
+        if (std::abs(right_stick_x) > 0.001)
         {
-            if (std::abs(msg->axes[0]) > 0.1 || std::abs(msg->axes[1]) > 0.1)
-            {
-                hasValidInput = true;
-                pitch = msg->axes[1] * angularScale_; // Left stick Y-axis
-                roll = msg->axes[0] * angularScale_; // Left stick X-axis
-            }
+            hasValidInput = true;
+            yaw = right_stick_x * angularScale_;
         }
 
-        // Buttons control yaw (independent of stick input)
-        if (msg->buttons.size() > 5)
+        // D-pad controls roll and pitch
+        if (std::abs(dpad_x) > 0.001)
         {
-            if (msg->buttons[5])
-            {
-                // RIGHT_BUMPER
-                hasValidInput = true;
-                yaw = angularScale_;
-            }
-            if (msg->buttons[4])
-            {
-                // LEFT_BUMPER
-                hasValidInput = true;
-                yaw = -angularScale_;
-            }
+            hasValidInput = true;
+            roll = dpad_x * angularScale_;   // D-pad X: roll (left/right tilt)
+        }
+        if (std::abs(dpad_y) > 0.001)
+        {
+            hasValidInput = true;
+            pitch = -dpad_y * angularScale_; // D-pad Y: pitch (forward/backward tilt, inverted)
         }
 
         // Update orientation if there is rotation input
@@ -294,5 +293,52 @@ namespace ocs2
                      markerControl_->getMode() == IMarkerControl::Mode::SINGLE_ARM ? "single arm" :
                      markerControl_->getActiveArm() == IMarkerControl::ArmType::LEFT ? "left arm" : "right arm",
                      position.x(), position.y(), position.z());
+    }
+
+    double JoystickMarkerWrapper::applyDeadzone(double value, double deadzone) const
+    {
+        if (std::abs(value) < deadzone)
+        {
+            return 0.0;
+        }
+        return value;
+    }
+
+    void JoystickMarkerWrapper::syncExternalPosition(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation)
+    {
+        // Always update the internal position and orientation, regardless of enabled state
+        currentPosition_ = position;
+        currentOrientation_ = orientation;
+        
+        // Log the sync operation
+        RCLCPP_DEBUG(node_->get_logger(), "🎮 Synced external position: [%.3f, %.3f, %.3f] (enabled: %s)",
+                     position.x(), position.y(), position.z(),
+                     enabled_.load() ? "true" : "false");
+    }
+
+    void JoystickMarkerWrapper::syncCurrentPoseWithMarker()
+    {
+        if (!markerControl_)
+        {
+            RCLCPP_WARN(node_->get_logger(), "🎮 Marker control not available for pose sync");
+            return;
+        }
+
+        // Get current marker position based on mode
+        if (markerControl_->getMode() == IMarkerControl::Mode::SINGLE_ARM)
+        {
+            auto [pos, orient] = markerControl_->getSingleArmPose();
+            currentPosition_ = pos;
+            currentOrientation_ = orient;
+        }
+        else
+        {
+            auto [pos, orient] = markerControl_->getDualArmPose(markerControl_->getActiveArm());
+            currentPosition_ = pos;
+            currentOrientation_ = orient;
+        }
+
+        RCLCPP_DEBUG(node_->get_logger(), "🎮 Synced current pose with marker: [%.3f, %.3f, %.3f]",
+                     currentPosition_.x(), currentPosition_.y(), currentPosition_.z());
     }
 } // namespace ocs2

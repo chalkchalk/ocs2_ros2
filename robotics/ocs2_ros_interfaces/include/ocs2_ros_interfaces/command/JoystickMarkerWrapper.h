@@ -59,8 +59,8 @@ namespace ocs2 {
         JoystickMarkerWrapper(
             rclcpp::Node::SharedPtr node,
             IMarkerControl* markerControl,
-            double linearScale = 0.01,
-            double angularScale = 0.01,
+            double linearScale = 0.005,
+            double angularScale = 0.05,
             double updateRate = 20.0,
             const JoystickMapping& mapping = JoystickMapping{});
 

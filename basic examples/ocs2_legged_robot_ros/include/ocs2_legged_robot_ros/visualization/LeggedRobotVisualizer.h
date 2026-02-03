@@ -63,7 +63,7 @@ namespace ocs2::legged_robot
         scalar_t trajectoryLineWidth_ = 0.01; // LineThickness for trajectories
         std::vector<Color> feetColorMap_ = {
             Color::blue, Color::orange, Color::yellow,
-            Color::purple
+            Color::purple, Color::green,
         }; // Colors for markers per feet
 
         /**
@@ -144,6 +144,8 @@ namespace ocs2::legged_robot
 
         scalar_t lastTime_;
         scalar_t minPublishTimeDifference_;
+
+        std::string base_link_name_;
     };
 }
 #endif // LEGGEDROBOTVISUALIZER_H

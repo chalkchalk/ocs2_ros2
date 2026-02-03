@@ -57,70 +57,113 @@ namespace ocs2::legged_robot {
         STANCE = 15,
     };
 
+    inline wholebody_contact_flag_t wholeBodyModeNumber2StanceLeg(const size_t &modeNumber) {
+        wholebody_contact_flag_t stanceLegs; // {LF, RF, LH, RH, ARM}
+
+        for (size_t i = 0; i < stanceLegs.size(); ++i) {
+            stanceLegs[i] = (modeNumber >> i) & 0x1;
+        }
+
+        return stanceLegs;
+    }
+    
 
     inline contact_flag_t modeNumber2StanceLeg(const size_t &modeNumber) {
-        contact_flag_t stanceLegs; // {LF, RF, LH, RH}
+        contact_flag_t stanceLegs; // {LF, RF, LH, RH, ARM}
 
-        switch (modeNumber) {
-            case 0:
-                stanceLegs = contact_flag_t{false, false, false, false};
-                break; // 0:  0-leg-stance
-            case 1:
-                stanceLegs = contact_flag_t{false, false, false, true};
-                break; // 1:  RH
-            case 2:
-                stanceLegs = contact_flag_t{false, false, true, false};
-                break; // 2:  LH
-            case 3:
-                stanceLegs = contact_flag_t{false, false, true, true};
-                break; // 3:  RH, LH
-            case 4:
-                stanceLegs = contact_flag_t{false, true, false, false};
-                break; // 4:  RF
-            case 5:
-                stanceLegs = contact_flag_t{false, true, false, true};
-                break; // 5:  RF, RH
-            case 6:
-                stanceLegs = contact_flag_t{false, true, true, false};
-                break; // 6:  RF, LH
-            case 7:
-                stanceLegs = contact_flag_t{false, true, true, true};
-                break; // 7:  RF, LH, RH
-            case 8:
-                stanceLegs = contact_flag_t{true, false, false, false};
-                break; // 8:  LF,
-            case 9:
-                stanceLegs = contact_flag_t{true, false, false, true};
-                break; // 9:  LF, RH
-            case 10:
-                stanceLegs = contact_flag_t{true, false, true, false};
-                break; // 10: LF, LH
-            case 11:
-                stanceLegs = contact_flag_t{true, false, true, true};
-                break; // 11: LF, LH, RH
-            case 12:
-                stanceLegs = contact_flag_t{true, true, false, false};
-                break; // 12: LF, RF
-            case 13:
-                stanceLegs = contact_flag_t{true, true, false, true};
-                break; // 13: LF, RF, RH
-            case 14:
-                stanceLegs = contact_flag_t{true, true, true, false};
-                break; // 14: LF, RF, LH
-            case 15:
-                stanceLegs = contact_flag_t{true, true, true, true};
-                break; // 15: 4-leg-stance
+        for (size_t i = 0; i < stanceLegs.size(); ++i) {
+            stanceLegs[i] = (modeNumber >> i) & 0x1;
         }
+        // switch (modeNumber) {
+        //     case 0:
+        //         stanceLegs = contact_flag_t{false, false, false, false};
+        //         break; // 0:  0-leg-stance
+        //     case 1:
+        //         stanceLegs = contact_flag_t{false, false, false, true};
+        //         break; // 1:  RH
+        //     case 2:
+        //         stanceLegs = contact_flag_t{false, false, true, false};
+        //         break; // 2:  LH
+        //     case 3:
+        //         stanceLegs = contact_flag_t{false, false, true, true};
+        //         break; // 3:  RH, LH
+        //     case 4:
+        //         stanceLegs = contact_flag_t{false, true, false, false};
+        //         break; // 4:  RF
+        //     case 5:
+        //         stanceLegs = contact_flag_t{false, true, false, true};
+        //         break; // 5:  RF, RH
+        //     case 6:
+        //         stanceLegs = contact_flag_t{false, true, true, false};
+        //         break; // 6:  RF, LH
+        //     case 7:
+        //         stanceLegs = contact_flag_t{false, true, true, true};
+        //         break; // 7:  RF, LH, RH
+        //     case 8:
+        //         stanceLegs = contact_flag_t{true, false, false, false};
+        //         break; // 8:  LF,
+        //     case 9:
+        //         stanceLegs = contact_flag_t{true, false, false, true};
+        //         break; // 9:  LF, RH
+        //     case 10:
+        //         stanceLegs = contact_flag_t{true, false, true, false};
+        //         break; // 10: LF, LH
+        //     case 11:
+        //         stanceLegs = contact_flag_t{true, false, true, true};
+        //         break; // 11: LF, LH, RH
+        //     case 12:
+        //         stanceLegs = contact_flag_t{true, true, false, false};
+        //         break; // 12: LF, RF
+        //     case 13:
+        //         stanceLegs = contact_flag_t{true, true, false, true};
+        //         break; // 13: LF, RF, RH
+        //     case 14:
+        //         stanceLegs = contact_flag_t{true, true, true, false};
+        //         break; // 14: LF, RF, LH
+        //     case 15:
+        //         stanceLegs = contact_flag_t{true, true, true, true};
+        //         break; // 15: 4-leg-stance
+        // }
 
         return stanceLegs;
     }
 
 
-    inline size_t stanceLeg2ModeNumber(const contact_flag_t &stanceLegs) {
-        return static_cast<size_t>(stanceLegs[3]) + 2 * static_cast<size_t>(stanceLegs[2]) + 4 * static_cast<size_t>(
-                   stanceLegs[1]) +
-               8 * static_cast<size_t>(stanceLegs[0]);
+    inline size_t stanceLeg2ModeNumber(const wholebody_contact_flag_t& stanceLegs) {
+        if (stanceLegs.size() > std::numeric_limits<size_t>::digits) {
+            throw std::overflow_error("Too many legs for size_t bitmask");
+        }
+
+        size_t mode = 0;
+        const size_t n = stanceLegs.size();
+        for (size_t i = 0; i < n; ++i) {
+            if (static_cast<bool>(stanceLegs[i])) {
+                mode |= (size_t{1} << (n - 1 - i));
+            }
+        }
+        return mode;
     }
+
+    inline size_t stanceLeg2ModeNumber(const contact_flag_t& stanceLegs) {
+        if (stanceLegs.size() > std::numeric_limits<size_t>::digits) {
+            throw std::overflow_error("Too many legs for size_t bitmask");
+        }
+
+        size_t mode = 0;
+        const size_t n = stanceLegs.size();
+        for (size_t i = 0; i < n; ++i) {
+            if (static_cast<bool>(stanceLegs[i])) {
+                mode |= (size_t{1} << (n - 1 - i));
+            }
+        }
+        return mode;
+    }
+
+    // inline size_t stanceLeg2ModeNumber(const contact_flag_t &stanceLegs) {
+    //     return static_cast<size_t>(stanceLegs[3]) + 2 * static_cast<size_t>(stanceLegs[2]) + 4 * static_cast<size_t>(
+    //                stanceLegs[1]) +
+    //            8 * static_cast<size_t>(stanceLegs[0]);
+    // }
 
 
     inline std::string modeNumber2String(const size_t &modeNumber) {

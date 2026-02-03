@@ -63,6 +63,8 @@ namespace ocs2::legged_robot
           lastTime_(std::numeric_limits<scalar_t>::lowest()),
           minPublishTimeDifference_(1.0 / maxUpdateFrequency)
     {
+        const auto &model = pinocchioInterface_.getModel();
+        base_link_name_ = model.frames[2].name;
         clock_ = node->get_clock();
 
         endEffectorKinematicsPtr_->setPinocchioInterface(pinocchioInterface_);
@@ -252,7 +254,7 @@ namespace ocs2::legged_robot
     {
         geometry_msgs::msg::TransformStamped baseToWorldTransform;
         baseToWorldTransform.header = getHeaderMsg(frameId_, timeStamp);
-        baseToWorldTransform.child_frame_id = "base";
+        baseToWorldTransform.child_frame_id = base_link_name_;
 
         const Eigen::Quaternion<scalar_t> q_world_base =
             getQuaternionFromEulerAnglesZyx(vector3_t(basePose.tail<3>()));

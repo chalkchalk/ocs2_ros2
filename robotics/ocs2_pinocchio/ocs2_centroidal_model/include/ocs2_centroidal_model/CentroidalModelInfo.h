@@ -71,6 +71,7 @@ namespace ocs2
         size_t stateDim; // number of states needed to define the system flow map
         size_t inputDim; // number of inputs needed to define the system flow map
         scalar_t robotMass; // total robot mass
+        scalar_t footRadius;
         vector_t qPinocchioNominal; // nominal robot configuration used in the SRBD model
         matrix3_t centroidalInertiaNominal;
         // nominal robot centroidal inertia used in the SRBD model (expressed in nominal base frame)
@@ -80,6 +81,8 @@ namespace ocs2
         /** Casts CentroidalModelInfo to CentroidalModelInfoCppAD. */
         template <typename T = SCALAR, EnableIfScalar_t<T>  = true>
         CentroidalModelInfoCppAd toCppAd() const;
+        size_t armDim; // number of arm joint (no ee).0 for no arm
+        size_t legDim; //3 for legged, 4 for wheeled
     };
 
     /* Explicit template instantiation for scalar_t and ad_scalar_t */

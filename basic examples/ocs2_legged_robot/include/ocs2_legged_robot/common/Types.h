@@ -42,8 +42,4 @@ namespace ocs2::legged_robot {
     template<typename T>
     using wholebody_contact_array_t = std::array<T, 5>;
     using wholebody_contact_flag_t = wholebody_contact_array_t<bool>;
-
-    using vector3_t = Eigen::Matrix<scalar_t, 3, 1>;
-    using matrix3_t = Eigen::Matrix<scalar_t, 3, 3>;
-    using quaternion_t = Eigen::Quaternion<scalar_t>;
 }

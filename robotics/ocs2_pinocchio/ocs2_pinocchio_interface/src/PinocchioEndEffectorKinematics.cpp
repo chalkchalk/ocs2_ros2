@@ -84,7 +84,69 @@ namespace ocs2
         for (const auto& frameId : endEffectorFrameIds_)
         {
             positions.emplace_back(data.oMf[frameId].translation());
+
         }
+        return positions;
+    }
+
+    auto PinocchioEndEffectorKinematics::getPosition(const std::vector<vector3_t> &offset, const pinocchio::ReferenceFrame frame) const-> std::vector<vector3_t>
+    {
+        if (pinocchioInterfacePtr_ == nullptr)
+        {
+            throw std::runtime_error(
+                "[PinocchioEndEffectorKinematics] pinocchioInterfacePtr_ is not set. Use setPinocchioInterface()");
+        }
+
+        const pinocchio::Data& data = pinocchioInterfacePtr_->getData();
+
+        // offset 支持两种用法：
+        // 1) offset.size() == 0 -> 全部当作 0
+        // 2) offset.size() == 1 -> 同一个 offset 应用于所有末端
+        // 3) offset.size() == N -> N==endEffectorFrameIds_.size()，逐个对应
+        const size_t N = endEffectorFrameIds_.size();
+        const bool hasOffset = !offset.empty();
+        const bool broadcast = (offset.size() == 1);
+
+        if (hasOffset && !broadcast && offset.size() != N)
+        {
+            throw std::runtime_error(
+                "[PinocchioEndEffectorKinematics] offset size must be 0, 1, or endEffectorFrameIds_.size()");
+        }
+
+        std::vector<vector3_t> positions;
+        positions.reserve(N);
+
+        for (size_t i = 0; i < N; ++i)
+        {
+            const auto frameId = endEffectorFrameIds_[i];
+
+            // frame 原点在世界系的位置
+            const vector3_t p_world = data.oMf[frameId].translation();
+
+            // 取本末端的 offset
+            const vector3_t off = hasOffset ? (broadcast ? offset[0] : offset[i]) : vector3_t::Zero();
+
+            vector3_t off_world;
+            switch (frame)
+            {
+                case pinocchio::ReferenceFrame::WORLD:
+                case pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED:
+                    // 这两种情况下 offset 的方向与世界对齐，直接当作世界系向量
+                    off_world = off;
+                    break;
+
+                case pinocchio::ReferenceFrame::LOCAL:
+                    // offset 在 frame 自身坐标系下，需要旋转到世界系
+                    off_world = data.oMf[frameId].rotation() * off;
+                    break;
+
+                default:
+                    throw std::runtime_error("[PinocchioEndEffectorKinematics] Unsupported ReferenceFrame.");
+            }
+
+            positions.emplace_back(p_world + off_world);
+        }
+
         return positions;
     }
 
@@ -107,6 +169,72 @@ namespace ocs2
             velocities.emplace_back(getFrameVelocity(model, data, frameId, rf).linear());
         }
         return velocities;
+    }
+
+    auto PinocchioEndEffectorKinematics::getVelocity(const std::vector<vector3_t> &offset, const pinocchio::ReferenceFrame frame) const -> std::vector<vector3_t>
+    {
+        if (pinocchioInterfacePtr_ == nullptr)
+        {
+            throw std::runtime_error(
+                "[PinocchioEndEffectorKinematics] pinocchioInterfacePtr_ is not set. Use setPinocchioInterface()");
+        }
+
+        const pinocchio::Model& model = pinocchioInterfacePtr_->getModel();
+        const pinocchio::Data&  data  = pinocchioInterfacePtr_->getData();
+
+        // 这里我们用 LOCAL_WORLD_ALIGNED：
+        // - linear(): frame 原点的线速度（世界表达）
+        // - angular(): frame 角速度（世界表达）
+        const pinocchio::ReferenceFrame rf_vel = pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED;
+
+        const size_t N = endEffectorFrameIds_.size();
+        const bool hasOffset = !offset.empty();
+        const bool broadcast = (offset.size() == 1);
+
+        if (hasOffset && !broadcast && offset.size() != N)
+        {
+            throw std::runtime_error(
+                "[PinocchioEndEffectorKinematics] offset size must be 0, 1, or endEffectorFrameIds_.size()");
+        }
+
+        std::vector<vector3_t> velocities;
+        velocities.reserve(N);
+
+        for (size_t i = 0; i < N; ++i)
+        {
+            const auto frameId = endEffectorFrameIds_[i];
+
+            // frame 原点处的 twist（世界表达）
+            const auto v = getFrameVelocity(model, data, frameId, rf_vel);
+            const vector3_t v_origin_world = v.linear();
+            const vector3_t w_world        = v.angular();
+
+            const vector3_t off = hasOffset ? (broadcast ? offset[0] : offset[i]) : vector3_t::Zero();
+
+            // 把 offset 变成世界系下的 r
+            vector3_t r_world;
+            switch (frame)
+            {
+                case pinocchio::ReferenceFrame::LOCAL:
+                    // offset 在 frame 自身坐标系表达：r_world = o_R_f * off
+                    r_world = data.oMf[frameId].rotation() * off;
+                    break;
+
+                case pinocchio::ReferenceFrame::WORLD:
+                case pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED:
+                    // offset 方向与世界对齐：直接当作世界系向量
+                    r_world = off;
+                    break;
+
+                default:
+                    throw std::runtime_error("[PinocchioEndEffectorKinematics] Unsupported ReferenceFrame for offset.");
+            }
+
+            // 点速度：v_P = v_O + ω × r
+            velocities.emplace_back(v_origin_world + w_world.cross(r_world));
+        }
+
+        return velocities; // 世界系
     }
 
     std::vector<VectorFunctionLinearApproximation> PinocchioEndEffectorKinematics::getPositionLinearApproximation(

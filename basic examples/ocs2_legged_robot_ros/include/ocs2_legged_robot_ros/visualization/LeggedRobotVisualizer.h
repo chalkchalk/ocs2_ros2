@@ -54,7 +54,7 @@ namespace ocs2::legged_robot
         std::string frameId_ = "odom"; // Frame name all messages are published in
         scalar_t footMarkerDiameter_ = 0.03; // Size of the spheres at the feet
         scalar_t footAlphaWhenLifted_ = 0.3; // Alpha value when a foot is lifted.
-        scalar_t forceScale_ = 1000.0; // Vector scale in N/m
+        scalar_t forceScale_ = 400.0; // Vector scale in N/m
         scalar_t velScale_ = 5.0; // Vector scale in m/s
         scalar_t copMarkerDiameter_ =
             0.03; // Size of the sphere at the center of pressure

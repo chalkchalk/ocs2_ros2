@@ -69,7 +69,9 @@ namespace ocs2::centroidal_model
                                                   const CentroidalModelType& type,
                                                   const vector_t& nominalJointAngles,
                                                   const std::vector<std::string>& threeDofContactNames,
-                                                  const std::vector<std::string>& sixDofContactNames);
+                                                  const std::vector<std::string>& sixDofContactNames,
+                                                  bool verbose=false);
+
 
     /** Load CentroidalModelType for a config file */
     CentroidalModelType loadCentroidalType(const std::string& configFilePath,

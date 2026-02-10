@@ -59,6 +59,12 @@ using vector_array2_t = std::vector<vector_array_t>;
 /** Array of arrays of dynamic vector trajectory type. */
 using vector_array3_t = std::vector<vector_array2_t>;
 
+using vector3_t = Eigen::Matrix<scalar_t, 3, 1>;
+
+using matrix3_t = Eigen::Matrix<scalar_t, 3, 3>;
+
+using quaternion_t = Eigen::Quaternion<scalar_t>;
+
 /** Dynamic-size row vector type. */
 using row_vector_t = Eigen::Matrix<scalar_t, 1, Eigen::Dynamic>;
 

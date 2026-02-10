@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 #include <ocs2_pinocchio_interface/PinocchioStateInputMapping.h>
 #include <ocs2_robotic_tools/end_effector/EndEffectorKinematics.h>
+#include <pinocchio/algorithm/frames.hpp>
 
 #include <string>
 #include <vector>
@@ -99,12 +100,18 @@ namespace ocs2
          */
         std::vector<vector3_t> getPosition(const vector_t& state) const override;
 
+        std::vector<vector3_t> getPosition(const std::vector<vector3_t> &offset, const pinocchio::ReferenceFrame frame=pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED) const;
+
         /** Get the end effector velocity vectors.
          * @note requires pinocchioInterface to be updated with:
          *       pinocchio::forwardKinematics(model, data, q, v)
          */
         std::vector<vector3_t> getVelocity(const vector_t& state,
                                            const vector_t& input) const override;
+
+        std::vector<vector3_t> getVelocity(const std::vector<vector3_t> &offset, const pinocchio::ReferenceFrame frame=pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED) const;
+        
+        
 
         /** Get the end effector orientation error.
          * @note requires pinocchioInterface to be updated with:

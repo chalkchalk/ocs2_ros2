@@ -107,7 +107,8 @@ namespace ocs2::centroidal_model
     CentroidalModelInfo createCentroidalModelInfo(const PinocchioInterface& interface, const CentroidalModelType& type,
                                                   const vector_t& nominalJointAngles,
                                                   const std::vector<std::string>& threeDofContactNames,
-                                                  const std::vector<std::string>& sixDofContactNames)
+                                                  const std::vector<std::string>& sixDofContactNames,
+                                                  bool verbose)
     {
         const auto& model = interface.getModel();
         auto data = interface.getData();
@@ -117,6 +118,12 @@ namespace ocs2::centroidal_model
             const int expaectedNumJoints = model.nq - 6;
             throw std::runtime_error(
                 "[CentroidalModelInfo] nominalJointAngles.size() should be " + std::to_string(expaectedNumJoints));
+        }
+
+        if(sixDofContactNames.size() > 1)
+        {
+            throw std::runtime_error(
+                "[CentroidalModelInfo] unable to handle sixDofContactNames > 1! " + std::to_string(sixDofContactNames.size()));
         }
 
         CentroidalModelInfoTpl<scalar_t> info;
@@ -144,6 +151,103 @@ namespace ocs2::centroidal_model
         info.qPinocchioNominal << vector_t::Zero(6), nominalJointAngles;
         info.centroidalInertiaNominal.setZero();
         info.comToBasePositionNominal.setZero();
+
+        if(info.numSixDofContacts == 1)
+        {
+            const auto& model = interface.getModel();
+            auto data = interface.getData();
+
+            const pinocchio::FrameIndex fid_base = model.getFrameId("root_joint");
+            const pinocchio::FrameIndex fid_ee   = model.getFrameId(sixDofContactNames[0]);
+
+            pinocchio::JointIndex j_base = model.frames[fid_base].parentJoint;
+            pinocchio::JointIndex j      = model.frames[fid_ee].parentJoint;
+
+            int nq = 0;
+            int step = 0;
+
+            if (verbose)
+            {
+                std::cout << "\n=== [armDim] chain walk (ee -> base) ===\n";
+                std::cout << "base frame : " << model.frames[fid_base].name
+                        << " (fid=" << fid_base << "), parentJoint="
+                        << j_base << " [" << model.names[j_base] << "]\n";
+                std::cout << "ee   frame : " << model.frames[fid_ee].name
+                        << " (fid=" << fid_ee << "), parentJoint="
+                        << j << " [" << model.names[j] << "]\n\n";
+            }
+
+            // 从末端 joint 往上爬，直到到达 base 所在 joint
+            while (j != j_base)
+            {
+                if (j == 0)
+                    throw std::runtime_error(
+                        "base_frame is not an ancestor of ee_frame (reached Universe).");
+
+                const auto parent = model.parents[j];
+
+                if (verbose)
+                {
+                    std::cout << "step " << step
+                            << " | joint=" << j
+                            << " name=" << model.names[j]
+                            << " | parent=" << parent
+                            << " (" << model.names[parent] << ")"
+                            << " | nqs=" << model.nqs[j]
+                            << std::endl;
+
+                    // 打印这个 joint 下挂的 BODY frame（link）
+                    bool printed = false;
+                    for (pinocchio::FrameIndex fid = 0;
+                        fid < (pinocchio::FrameIndex)model.frames.size(); ++fid)
+                    {
+                        const auto &f = model.frames[fid];
+                        if (f.parentJoint == j && f.type == pinocchio::FrameType::BODY)
+                        {
+                            if (!printed)
+                            {
+                                std::cout << "        link(BODY frame): ";
+                                printed = true;
+                            }
+                            std::cout << f.name << " ";
+                        }
+                    }
+                    if (printed) std::cout << std::endl;
+                }
+
+                nq += model.nqs[j];
+                j = parent;
+                ++step;
+            }
+
+            if (verbose)
+            {
+                std::cout << "\n=== reached base joint ===\n";
+                std::cout << "base joint = " << j_base
+                        << " [" << model.names[j_base] << "]\n";
+                std::cout << "total nq between frames = " << nq << "\n";
+            }
+
+            info.armDim = nq;
+
+            if (verbose)
+            {
+                std::cout << "[createCentroidalModelInfo] loading arm dimension = "
+                        << info.armDim << std::endl;
+            }
+        }
+        else
+        {
+            info.armDim = 0;
+        }
+        if ((info.actuatedDofNum - info.armDim ) % info.numThreeDofContacts != 0 ) 
+        {
+            throw std::runtime_error("[createCentroidalModelInfo] (info.actuatedDofNum - info.armDim ) % info.numThreeDofContacts = 0");
+        }
+        info.legDim = (info.actuatedDofNum - info.armDim )  / info.numThreeDofContacts;
+        
+        
+
         if (info.centroidalModelType == CentroidalModelType::SingleRigidBodyDynamics)
         {
             const vector_t vPinocchioNominal = vector_t::Zero(info.generalizedCoordinatesNum);
@@ -154,6 +258,7 @@ namespace ocs2::centroidal_model
 
         return info;
     }
+
 
 
     CentroidalModelType loadCentroidalType(const std::string& configFilePath, const std::string& fieldName)
